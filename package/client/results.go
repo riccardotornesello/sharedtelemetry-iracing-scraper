@@ -214,7 +214,7 @@ type resultsResponse struct {
 	} `json:"weather"`
 }
 
-type resultsLapDataResponse struct {
+type ResultsLapDataResponse struct {
 	Success     bool `json:"success"`
 	SessionInfo struct {
 		SubsessionId          int    `json:"subsession_id"`
@@ -271,7 +271,7 @@ type resultsLapDataResponse struct {
 		WheelColor   string `json:"wheel_color"`
 		RimType      int    `json:"rim_type"`
 	} `json:"livery"`
-	Laps []resultsLapDataChunk `json:"laps"`
+	Laps []resultsLapDataChunk `json:"laps"` // From chunks
 }
 
 type resultsLapDataChunk struct {
@@ -303,10 +303,13 @@ type resultsLapDataChunk struct {
 
 func (client *IRacingApiClient) GetResults(subsessionId int) *resultsResponse {
 	url := "/data/results/get?subsession_id=" + strconv.Itoa(subsessionId)
-	body := client.Get(url)
+	body, err := client.Get(url)
+	if err != nil {
+		log.Fatal("Query failed")
+	}
 
 	response := &resultsResponse{}
-	err := json.Unmarshal(body, response)
+	err = json.Unmarshal(body, response)
 	if err != nil {
 		log.Println(string(body))
 		log.Println(err)
@@ -316,12 +319,15 @@ func (client *IRacingApiClient) GetResults(subsessionId int) *resultsResponse {
 	return response
 }
 
-func (client *IRacingApiClient) GetResultsLapData(subsessionId int, simsessionNumber int, custId int) *resultsLapDataResponse {
+func (client *IRacingApiClient) GetResultsLapData(subsessionId int, simsessionNumber int, custId int) *ResultsLapDataResponse {
 	url := "/data/results/lap_data?subsession_id=" + strconv.Itoa(subsessionId) + "&simsession_number=" + strconv.Itoa(simsessionNumber) + "&cust_id=" + strconv.Itoa(custId)
-	body := client.Get(url)
+	body, err := client.Get(url)
+	if err != nil {
+		log.Fatal("Query failed")
+	}
 
-	response := &resultsLapDataResponse{}
-	err := json.Unmarshal(body, response)
+	response := &ResultsLapDataResponse{}
+	err = json.Unmarshal(body, response)
 	if err != nil {
 		log.Println(string(body))
 		log.Println(err)

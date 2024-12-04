@@ -8,8 +8,18 @@ import (
 	"log"
 	"net/http"
 	"net/http/cookiejar"
+	"strconv"
 	"strings"
+	"time"
 )
+
+type IRacingError struct {
+	Message string `json:"message"`
+}
+
+func (e *IRacingError) Error() string {
+	return e.Message
+}
 
 type IRacingApiClient struct {
 	client *http.Client
@@ -38,7 +48,8 @@ func NewIRacingApiClient(email string, password string) *IRacingApiClient {
 	}
 
 	client := &http.Client{
-		Jar: jar,
+		Jar:     jar,
+		Timeout: 10 * time.Second, // TODO: make this configurable
 	}
 
 	tokenIn := []byte(password + strings.ToLower(email))
@@ -73,40 +84,62 @@ func NewIRacingApiClient(email string, password string) *IRacingApiClient {
 	}
 }
 
-func (c *IRacingApiClient) Get(path string) []byte {
+func (c *IRacingApiClient) Get(path string) ([]byte, error) {
 	resp, err := c.client.Get("https://members-ng.iracing.com" + path)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+
+	// Retry once more if the request failed
+	// TODO: allow for more retries
+	// TODO: allow to skip retrying
+	if resp.StatusCode == 429 {
+		rateLimitReset := resp.Header.Get("X-RateLimit-Reset")
+		if rateLimitReset == "" {
+			return nil, &IRacingError{Message: "Rate limit exceeded. Can't find rate limit reset time"}
+		}
+
+		rateLimitResetInt, err := strconv.ParseInt(rateLimitReset, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		time.Sleep(time.Until(time.Unix(rateLimitResetInt, 0)))
+
+		resp, err = c.client.Get("https://members-ng.iracing.com" + path)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
-		log.Fatal("Query failed", string(body))
+		return nil, &IRacingError{Message: string(body)}
 	}
 
 	response := &IRacingResponse{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		log.Fatal("Failed to parse response")
+		return nil, err
 	}
 
 	resp, err = c.client.Get(response.Link)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	return body
+	return body, nil
 }
 
 func (c *IRacingApiClient) GetChunks(chunkInfo *IRacingChunkInfo) [][]byte {
