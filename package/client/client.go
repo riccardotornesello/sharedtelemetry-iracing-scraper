@@ -41,10 +41,10 @@ type IRacingChunkInfo struct {
 	ChunkFileNames  []string `json:"chunk_file_names"`
 }
 
-func NewIRacingApiClient(email string, password string) *IRacingApiClient {
+func NewIRacingApiClient(email string, password string) (*IRacingApiClient, error) {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	client := &http.Client{
@@ -60,28 +60,28 @@ func NewIRacingApiClient(email string, password string) *IRacingApiClient {
 
 	resp, err := client.Post("https://members-ng.iracing.com/auth", "application/json", strings.NewReader(`{"email":"`+email+`","password":"`+tokenB64+`"}`))
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
-		log.Fatal("Login failed")
+		return nil, &IRacingError{Message: "Login failed"}
 	}
 
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	authResponse := &IRacingAuthResponse{}
 	err = json.Unmarshal(body, authResponse)
 	if err != nil {
-		log.Fatal("Login failed")
+		return nil, err
 	}
 
 	return &IRacingApiClient{
 		client: client,
-	}
+	}, nil
 }
 
 func (c *IRacingApiClient) Get(path string) ([]byte, error) {

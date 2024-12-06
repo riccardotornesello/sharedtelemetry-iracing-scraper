@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"log"
 	"strconv"
 )
 
@@ -271,10 +270,10 @@ type ResultsLapDataResponse struct {
 		WheelColor   string `json:"wheel_color"`
 		RimType      int    `json:"rim_type"`
 	} `json:"livery"`
-	Laps []resultsLapDataChunk `json:"laps"` // From chunks
+	Laps []ResultsLapDataChunk `json:"laps"` // From chunks
 }
 
-type resultsLapDataChunk struct {
+type ResultsLapDataChunk struct {
 	GroupId          int    `json:"group_id"`
 	Name             string `json:"name"`
 	CustId           int    `json:"cust_id"`
@@ -301,51 +300,45 @@ type resultsLapDataChunk struct {
 	Ai           bool     `json:"ai"`
 }
 
-func (client *IRacingApiClient) GetResults(subsessionId int) *resultsResponse {
+func (client *IRacingApiClient) GetResults(subsessionId int) (*resultsResponse, error) {
 	url := "/data/results/get?subsession_id=" + strconv.Itoa(subsessionId)
 	body, err := client.Get(url)
 	if err != nil {
-		log.Fatal("Query failed")
+		return nil, err
 	}
 
 	response := &resultsResponse{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		log.Println(string(body))
-		log.Println(err)
-		log.Fatal("Query parsing failed")
+		return nil, err
 	}
 
-	return response
+	return response, nil
 }
 
-func (client *IRacingApiClient) GetResultsLapData(subsessionId int, simsessionNumber int, custId int) *ResultsLapDataResponse {
+func (client *IRacingApiClient) GetResultsLapData(subsessionId int, simsessionNumber int, custId int) (*ResultsLapDataResponse, error) {
 	url := "/data/results/lap_data?subsession_id=" + strconv.Itoa(subsessionId) + "&simsession_number=" + strconv.Itoa(simsessionNumber) + "&cust_id=" + strconv.Itoa(custId)
 	body, err := client.Get(url)
 	if err != nil {
-		log.Fatal("Query failed")
+		return nil, err
 	}
 
 	response := &ResultsLapDataResponse{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		log.Println(string(body))
-		log.Println(err)
-		log.Fatal("Query parsing failed")
+		return nil, err
 	}
 
 	chunksData := client.GetChunks(&response.ChunkInfo)
-	response.Laps = make([]resultsLapDataChunk, 0)
+	response.Laps = make([]ResultsLapDataChunk, 0)
 	for _, chunk := range chunksData {
-		chunkLaps := make([]resultsLapDataChunk, 0)
+		chunkLaps := make([]ResultsLapDataChunk, 0)
 		err := json.Unmarshal(chunk, &chunkLaps)
 		if err != nil {
-			log.Println(string(chunk))
-			log.Println(err)
-			log.Fatal("Chunk parsing failed")
+			return nil, err
 		}
 		response.Laps = append(response.Laps, chunkLaps...)
 	}
 
-	return response
+	return response, nil
 }

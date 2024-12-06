@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 	"riccardotornesello.it/iracing-average-lap/client"
 	"riccardotornesello.it/iracing-average-lap/database"
 	"riccardotornesello.it/iracing-average-lap/models"
@@ -41,7 +42,10 @@ func main() {
 	}
 
 	// Initialize iRacing API client
-	irClient := client.NewIRacingApiClient(os.Getenv("IRACING_EMAIL"), os.Getenv("IRACING_PASSWORD"))
+	irClient, err := client.NewIRacingApiClient(os.Getenv("IRACING_EMAIL"), os.Getenv("IRACING_PASSWORD"))
+	if err != nil {
+		log.Fatal("Error initializing iRacing API client")
+	}
 
 	if saveRequests {
 		// Initialize the directory structure
@@ -56,7 +60,10 @@ func main() {
 	////////////////////////////////////////
 
 	// Extract the sessions list (only the completed ones) for the specified series and league
-	sessions := irClient.GetLeagueSeasonSessions(seriesId, leagueId, true)
+	sessions, err := irClient.GetLeagueSeasonSessions(seriesId, leagueId, true)
+	if err != nil {
+		log.Fatal("Error getting league season sessions")
+	}
 
 	// Get the sessions which are not already stored in the database
 	sessionIds := make([]int, len(sessions.Sessions))
@@ -103,4 +110,16 @@ func main() {
 		<-sessionJobResults
 	}
 	close(sessionJobResults)
+}
+
+func sessionWorker(irClient *client.IRacingApiClient, sessionJobs <-chan *client.LeagueSeasonSession, sessionJobResults chan<- interface{}, db *gorm.DB, saveRequests bool) {
+	for session := range sessionJobs {
+		err := parseSession(irClient, session, db, saveRequests)
+		if err != nil {
+			log.Println("Error parsing session", session.SubsessionId)
+			log.Println(err)
+		}
+
+		sessionJobResults <- interface{}(nil)
+	}
 }

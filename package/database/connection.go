@@ -1,13 +1,13 @@
 package database
 
 import (
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"riccardotornesello.it/iracing-average-lap/models"
 )
 
 func Connect() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("db.sql"), &gorm.Config{}) // TODO: make variable
+	db, err := gorm.Open(postgres.Open("host=localhost user=postgres password=example dbname=postgres port=5432"), &gorm.Config{}) // TODO: make variable
 	if err != nil {
 		return nil, err
 	}

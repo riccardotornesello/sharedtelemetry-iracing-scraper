@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"log"
 	"strconv"
 )
 
@@ -201,39 +200,39 @@ type LeagueSeasonSession struct {
 	WinnerName string `json:"winner_name"`
 }
 
-func (client *IRacingApiClient) GetLeague(leagueId int, include_licenses bool) *leagueGetResponse {
+func (client *IRacingApiClient) GetLeague(leagueId int, include_licenses bool) (*leagueGetResponse, error) {
 	url := "/data/league/get?league_id=" + strconv.Itoa(leagueId) + "&include_licenses=" + strconv.FormatBool(include_licenses)
 	body, err := client.Get(url)
 	if err != nil {
-		log.Fatal("Query failed")
+		return nil, err
 	}
 
 	response := &leagueGetResponse{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		log.Fatal("Query parsing failed")
+		return nil, err
 	}
 
-	return response
+	return response, nil
 }
 
-func (client *IRacingApiClient) GetLeagueSeasons(leagueId int, retired bool) *leagueSeasonsResponse {
+func (client *IRacingApiClient) GetLeagueSeasons(leagueId int, retired bool) (*leagueSeasonsResponse, error) {
 	url := "/data/league/seasons?league_id=" + strconv.Itoa(leagueId) + "&retired=" + strconv.FormatBool(retired)
 	body, err := client.Get(url)
 	if err != nil {
-		log.Fatal("Query failed")
+		return nil, err
 	}
 
 	response := &leagueSeasonsResponse{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		log.Fatal("Query parsing failed")
+		return nil, err
 	}
 
-	return response
+	return response, nil
 }
 
-func (client *IRacingApiClient) GetLeagueSeasonSessions(leagueId int, seasonId int, resultsOnly bool) *LeagueSeasonSessionsResponse {
+func (client *IRacingApiClient) GetLeagueSeasonSessions(leagueId int, seasonId int, resultsOnly bool) (*LeagueSeasonSessionsResponse, error) {
 	resultsOnlyStr := "false"
 	if resultsOnly {
 		resultsOnlyStr = "true"
@@ -242,14 +241,14 @@ func (client *IRacingApiClient) GetLeagueSeasonSessions(leagueId int, seasonId i
 	url := "/data/league/season_sessions?league_id=" + strconv.Itoa(leagueId) + "&season_id=" + strconv.Itoa(seasonId) + "&results_only=" + resultsOnlyStr
 	body, err := client.Get(url)
 	if err != nil {
-		log.Fatal("Query failed")
+		return nil, err
 	}
 
 	response := &LeagueSeasonSessionsResponse{}
 	err = json.Unmarshal(body, response)
 	if err != nil {
-		log.Fatal("Query parsing failed")
+		return nil, err
 	}
 
-	return response
+	return response, nil
 }
