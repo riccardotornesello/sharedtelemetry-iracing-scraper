@@ -1,4 +1,4 @@
-package main
+package sessions_downloader
 
 import (
 	"encoding/json"

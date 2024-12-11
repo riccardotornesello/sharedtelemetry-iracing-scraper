@@ -1,4 +1,4 @@
-package main
+package sessions_downloader
 
 import (
 	"log"
@@ -12,7 +12,7 @@ import (
 	"riccardotornesello.it/iracing-average-lap/models"
 )
 
-func main() {
+func Run() {
 	////////////////////////////////////////
 	// INITIALIZATION
 	////////////////////////////////////////
