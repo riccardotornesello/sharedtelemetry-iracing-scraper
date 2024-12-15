@@ -1,82 +1,128 @@
-resource "google_storage_bucket" "source_bucket" {
-  name                        = "sharedtelemetryapp-gcf-source"
-  location                    = "EU"
-  uniform_bucket_level_access = true
+#################################
+# Artifact Registry
+#################################
+
+resource "google_artifact_registry_repository" "sessions_downloader_repository" {
+  repository_id = "sessions-downloader"
+  format        = "DOCKER"
 }
 
-data "archive_file" "default" {
-  type        = "zip"
-  output_path = "/tmp/function-source.zip"
-  source_dir  = "../package/"
+#################################
+# Pub/Sub
+#################################
+
+resource "google_pubsub_topic" "sessions_downloader_topic" {
+  name = "sessions_downloader_topic"
 }
 
-resource "google_storage_bucket_object" "object" {
-  name   = "function-source.zip"
-  bucket = google_storage_bucket.source_bucket.name
-  source = "/tmp/function-source.zip"
+resource "google_pubsub_subscription" "subscription" {
+  name  = "pubsub_subscription"
+  topic = google_pubsub_topic.sessions_downloader_topic.name
+
+  depends_on = [google_cloud_run_v2_service.sessions_downloader_function]
+
+  push_config {
+    push_endpoint = google_cloud_run_v2_service.sessions_downloader_function.uri
+    oidc_token {
+      service_account_email = google_service_account.invoker.email
+    }
+    attributes = {
+      x-goog-version = "v1"
+    }
+  }
 }
 
-resource "google_project_iam_member" "build_account_editor" {
-  # TODO: only permission to get the bucket
+#################################
+# Google Cloud Run
+#################################
 
-  project = "sharedtelemetryapp"
-  role    = "roles/editor"
-  member  = "serviceAccount:${google_service_account.build_account.email}"
-}
+resource "google_cloud_run_v2_service" "sessions_downloader_function" {
+  name     = "sessions-downloader"
+  location = "europe-west3"
 
-resource "google_service_account" "build_account" {
-  account_id   = "gcf-build-sa"
-  display_name = "GCF Build Service Account"
-}
+  depends_on = [google_project_service.cloudrun_api, google_project_iam_member.runner]
 
-resource "google_cloudfunctions2_function" "function" {
-  name        = "function-v2"
-  location    = "us-central1"
-  description = "a new function"
+  deletion_protection = false
 
-  depends_on = [google_project_service.api_run, google_project_iam_member.build_account_editor]
+  template {
+    service_account = google_service_account.runner.email
 
-  build_config {
-    runtime         = "go122"
-    entry_point     = "SessionsDownloader"
-    service_account = google_service_account.build_account.id
-    source {
-      storage_source {
-        bucket = google_storage_bucket.source_bucket.name
-        object = google_storage_bucket_object.object.name
+    containers {
+      image = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest" # TODO: variable
+
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
+      }
+
+      env {
+        name  = "IRACING_EMAIL"
+        value = var.iracing_email
+      }
+      env {
+        name  = "IRACING_PASSWORD"
+        value = var.iracing_password
+      }
+      env {
+        name  = "DB_USER"
+        value = google_sql_user.sessions_downloader_user.name
+      }
+      env {
+        name  = "DB_PASS"
+        value = google_sql_user.sessions_downloader_user.password
+      }
+      env {
+        name  = "DB_NAME"
+        value = google_sql_database.database.name
+      }
+      env {
+        name  = "DB_HOST"
+        value = "/cloudsql/${google_sql_database_instance.sharedtelemetry.connection_name}"
+      }
+    }
+
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.sharedtelemetry.connection_name]
       }
     }
   }
-
-  service_config {
-    max_instance_count = 1
-    available_memory   = "256M"
-    timeout_seconds    = 60
-  }
-
-  event_trigger {
-    event_type   = "google.cloud.pubsub.topic.v1.messagePublished"
-    pubsub_topic = google_pubsub_topic.default.id
-    retry_policy = "RETRY_POLICY_RETRY"
-  }
 }
 
-resource "google_pubsub_topic" "default" {
-  name = "pubsub_topic"
+#################################
+# Google Cloud SQL
+#################################
+
+resource "google_sql_user" "sessions_downloader_user" {
+  name       = "sessions-downloader"
+  instance   = google_sql_database_instance.sharedtelemetry.name
+  password   = var.db_password
 }
 
-resource "google_pubsub_subscription" "default" {
-  name  = "pubsub_subscription"
-  topic = google_pubsub_topic.default.name
+#################################
+# IAM
+#################################
+
+resource "google_service_account" "invoker" {
+  account_id   = "gcr-sessions-invoker"
+  display_name = "Cloud Run Sessions Downloader Invoker"
 }
 
-resource "google_cloud_scheduler_job" "default" {
-  name        = "test-job"
-  description = "test job"
-  schedule    = "* * * * *"
+resource "google_service_account" "runner" {
+  account_id   = "gcr-sessions-runner"
+  display_name = "Cloud Run Sessions Downloader Runner"
+}
 
-  pubsub_target {
-    topic_name = google_pubsub_topic.default.id
-    data       = base64encode("Hello world!")
-  }
+resource "google_project_iam_member" "runner" {
+  project = "sharedtelemetryapp"
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.runner.email}"
+}
+
+resource "google_cloud_run_service_iam_binding" "invoker" {
+  location = google_cloud_run_v2_service.sessions_downloader_function.location
+  service  = google_cloud_run_v2_service.sessions_downloader_function.name
+  role     = "roles/run.invoker"
+  members  = ["serviceAccount:${google_service_account.invoker.email}"]
 }

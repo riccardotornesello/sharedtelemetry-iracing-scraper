@@ -1,4 +1,4 @@
-package sessions_downloader
+package main
 
 import (
 	"log"
@@ -7,12 +7,12 @@ import (
 
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
-	"riccardotornesello.it/iracing-average-lap/client"
-	"riccardotornesello.it/iracing-average-lap/database"
-	"riccardotornesello.it/iracing-average-lap/models"
+	"riccardotornesello.it/sharedtelemetry/iracing/database"
+	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
-func Run() {
+func main() {
 	////////////////////////////////////////
 	// INITIALIZATION
 	////////////////////////////////////////
@@ -42,7 +42,7 @@ func Run() {
 	}
 
 	// Initialize iRacing API client
-	irClient, err := client.NewIRacingApiClient(os.Getenv("IRACING_EMAIL"), os.Getenv("IRACING_PASSWORD"))
+	irClient, err := irapi.NewIRacingApiClient(os.Getenv("IRACING_EMAIL"), os.Getenv("IRACING_PASSWORD"))
 	if err != nil {
 		log.Fatal("Error initializing iRacing API client")
 	}
@@ -81,7 +81,7 @@ func Run() {
 	// Start 3 workers to get the lap results for each driver
 	numWorkers := 3
 	maxNumJobs := len(sessions.Sessions)
-	sessionJobs := make(chan *client.LeagueSeasonSession, maxNumJobs)
+	sessionJobs := make(chan *irapi.LeagueSeasonSession, maxNumJobs)
 	sessionJobResults := make(chan interface{}, maxNumJobs)
 	for w := 0; w < numWorkers; w++ {
 		go sessionWorker(irClient, sessionJobs, sessionJobResults, db, saveRequests)
@@ -112,7 +112,7 @@ func Run() {
 	close(sessionJobResults)
 }
 
-func sessionWorker(irClient *client.IRacingApiClient, sessionJobs <-chan *client.LeagueSeasonSession, sessionJobResults chan<- interface{}, db *gorm.DB, saveRequests bool) {
+func sessionWorker(irClient *irapi.IRacingApiClient, sessionJobs <-chan *irapi.LeagueSeasonSession, sessionJobResults chan<- interface{}, db *gorm.DB, saveRequests bool) {
 	for session := range sessionJobs {
 		err := parseSession(irClient, session, db, saveRequests)
 		if err != nil {

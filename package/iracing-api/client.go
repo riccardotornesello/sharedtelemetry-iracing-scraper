@@ -1,4 +1,4 @@
-package client
+package irapi
 
 import (
 	"crypto/sha256"

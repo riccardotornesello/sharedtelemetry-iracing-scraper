@@ -1,4 +1,4 @@
-package sessions_downloader
+package logic
 
 import (
 	"encoding/json"
@@ -9,22 +9,22 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"riccardotornesello.it/iracing-average-lap/client"
-	"riccardotornesello.it/iracing-average-lap/models"
+	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
-func parseSession(irClient *client.IRacingApiClient, session *client.LeagueSeasonSession, db *gorm.DB, saveRequests bool) error {
-	log.Println("Parsing session", session.SubsessionId)
+func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB, saveRequests bool) error {
+	log.Println("Parsing session", subsessionId)
 
 	// Get the results and make sure the session is a qualify session
-	results, err := irClient.GetResults(session.SubsessionId)
+	results, err := irClient.GetResults(subsessionId)
 	if err != nil {
 		return err
 	}
 
 	if saveRequests {
 		resultsJson, _ := json.Marshal(results)
-		err := os.WriteFile(fmt.Sprintf("downloads/sessions/%d.json", session.SubsessionId), resultsJson, 0644)
+		err := os.WriteFile(fmt.Sprintf("downloads/sessions/%d.json", subsessionId), resultsJson, 0644)
 		if err != nil {
 			return err
 		}
@@ -38,15 +38,9 @@ func parseSession(irClient *client.IRacingApiClient, session *client.LeagueSeaso
 		}
 	}()
 
-	launchAt, err := time.Parse(time.RFC3339, session.LaunchAt)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	err = tx.Create(&models.Event{
-		SubsessionId: session.SubsessionId,
-		LaunchAt:     launchAt,
+		SubsessionId: subsessionId,
+		LaunchAt:     subsessionLaunchAt,
 	}).Error
 	if err != nil {
 		tx.Rollback()
@@ -55,7 +49,7 @@ func parseSession(irClient *client.IRacingApiClient, session *client.LeagueSeaso
 
 	for _, result := range results.SessionResults {
 		eventSesion := models.EventSession{
-			EventID:          session.SubsessionId,
+			EventID:          subsessionId,
 			SimsessionNumber: result.SimsessionNumber,
 			SimsessionType:   result.SimsessionType,
 			SimsessionName:   result.SimsessionName,
@@ -72,7 +66,7 @@ func parseSession(irClient *client.IRacingApiClient, session *client.LeagueSeaso
 		lapJobsInput := make(chan int, numJobs)
 		lapJobsOutput := make(chan *ParseLapMessage, numJobs)
 		for w := 0; w < numWorkers; w++ {
-			go lapResultsWorker(session.SubsessionId, irClient, lapJobsInput, lapJobsOutput, tx, saveRequests)
+			go lapResultsWorker(subsessionId, irClient, lapJobsInput, lapJobsOutput, tx, saveRequests)
 		}
 
 		// Get the single laps for each driver to check if the lap is valid
@@ -145,7 +139,7 @@ func parseSession(irClient *client.IRacingApiClient, session *client.LeagueSeaso
 	return tx.Commit().Error
 }
 
-func lapResultsWorker(subsessionId int, irClient *client.IRacingApiClient, lapJobsInput <-chan int, lapJobsOutput chan<- *ParseLapMessage, tx *gorm.DB, saveRequests bool) {
+func lapResultsWorker(subsessionId int, irClient *irapi.IRacingApiClient, lapJobsInput <-chan int, lapJobsOutput chan<- *ParseLapMessage, tx *gorm.DB, saveRequests bool) {
 	for driverId := range lapJobsInput {
 		message := parseLap(subsessionId, irClient, driverId, tx, saveRequests)
 		lapJobsOutput <- message

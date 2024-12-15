@@ -16,4 +16,6 @@ type Event struct {
 
 	LaunchAt time.Time `gorm:"index"`
 	TrackId  int
+
+	// TODO: league and season
 }
