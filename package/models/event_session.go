@@ -9,7 +9,7 @@ type EventSession struct {
 	gorm.Model
 
 	EventID int
-	Event   Event
+	Event   Event `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	SimsessionNumber int
 	SimsessionType   int

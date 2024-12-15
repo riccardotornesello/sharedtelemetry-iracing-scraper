@@ -13,9 +13,9 @@ type Event struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	SubsessionId int `gorm:"primarykey"`
+	LeagueId     int `gorm:"index"`
+	SeasonId     int `gorm:"index"`
 
 	LaunchAt time.Time `gorm:"index"`
 	TrackId  int
-
-	// TODO: league and season
 }

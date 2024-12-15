@@ -3,6 +3,7 @@ module riccardotornesello.it/sharedtelemetry/iracing
 go 1.23.2
 
 require (
+	github.com/lib/pq v1.10.9
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
 )

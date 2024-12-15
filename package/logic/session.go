@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -40,7 +39,10 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 
 	err = tx.Create(&models.Event{
 		SubsessionId: subsessionId,
+		LeagueId:     results.LeagueId,
+		SeasonId:     results.SeasonId,
 		LaunchAt:     subsessionLaunchAt,
+		TrackId:      results.Track.TrackId,
 	}).Error
 	if err != nil {
 		tx.Rollback()
@@ -55,6 +57,21 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 			SimsessionName:   result.SimsessionName,
 		}
 		err = tx.Create(&eventSesion).Error
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		// Store the participants in the database
+		dbData := make([]models.EventSessionParticipant, len(result.Results))
+		for i, participant := range result.Results {
+			dbData[i] = models.EventSessionParticipant{
+				EventSessionID: eventSesion.ID,
+				CustId:         participant.CustId,
+				CarId:          participant.CarId,
+			}
+		}
+		err = tx.Create(dbData).Error
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -103,7 +120,7 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 					dbData[i] = models.Lap{
 						EventSessionID: eventSesion.ID,
 						CustId:         lap.CustId,
-						LapEvents:      strings.Join(lap.LapEvents, ","), // TODO: store as array
+						LapEvents:      lap.LapEvents,
 						Incident:       lap.Incident,
 						LapTime:        lap.LapTime,
 						LapNumber:      lap.LapNumber,
@@ -135,6 +152,8 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		close(lapJobsOutput)
 		close(lapJobsInput)
 	}
+
+	log.Println("Session", subsessionId, "parsed")
 
 	return tx.Commit().Error
 }

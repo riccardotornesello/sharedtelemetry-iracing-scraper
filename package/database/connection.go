@@ -25,6 +25,7 @@ func Connect(user string, pass string, host string, port string, name string) (*
 		&models.Lap{},
 		&models.Event{},
 		&models.EventSession{},
+		&models.EventSessionParticipant{},
 	)
 
 	return db, nil
