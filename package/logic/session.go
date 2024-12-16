@@ -1,10 +1,8 @@
 package logic
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,20 +10,45 @@ import (
 	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
-func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB, saveRequests bool) error {
+func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB) error {
 	log.Println("Parsing session", subsessionId)
 
-	// Get the results and make sure the session is a qualify session
-	results, err := irClient.GetResults(subsessionId)
-	if err != nil {
-		return err
+	// Skip if the session is already in the database
+	var count int64
+	db.Model(&models.Event{}).Where("subsession_id = ?", subsessionId).Count(&count)
+	if count > 0 {
+		log.Println("Session", subsessionId, "already parsed")
+		return nil
 	}
 
-	if saveRequests {
-		resultsJson, _ := json.Marshal(results)
-		err := os.WriteFile(fmt.Sprintf("downloads/sessions/%d.json", subsessionId), resultsJson, 0644)
-		if err != nil {
-			return err
+	// Get the whole session results
+	results, err := irClient.GetResults(subsessionId)
+	if err != nil {
+		return fmt.Errorf("error getting results for session %d: %w", subsessionId, err)
+	}
+
+	// For each subsession, get the results for each driver
+	// results.SessionResults: one for each session (practice, quali...)
+	// results.SessionResults[i].Results: one for each driver
+	laps := make([]models.Lap, 0)
+	for _, simSessionResult := range results.SessionResults {
+		for _, participant := range simSessionResult.Results {
+			res, err := irClient.GetResultsLapData(results.SubsessionId, simSessionResult.SimsessionNumber, participant.CustId)
+			if err != nil {
+				return fmt.Errorf("error getting lap data for session %d, simsession %d, cust %d: %w", results.SubsessionId, simSessionResult.SimsessionNumber, participant.CustId, err)
+			}
+
+			for _, lap := range res.Laps {
+				laps = append(laps, models.Lap{
+					SubsessionID:     results.SubsessionId,
+					SimsessionNumber: simSessionResult.SimsessionNumber,
+					CustID:           lap.CustId,
+					LapEvents:        lap.LapEvents,
+					Incident:         lap.Incident,
+					LapTime:          lap.LapTime,
+					LapNumber:        lap.LapNumber,
+				})
+			}
 		}
 	}
 
@@ -37,130 +60,57 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		}
 	}()
 
-	err = tx.Create(&models.Event{
-		SubsessionId: subsessionId,
-		LeagueId:     results.LeagueId,
-		SeasonId:     results.SeasonId,
+	// Store the event in the database
+	if err = tx.Create(&models.Event{
+		SubsessionID: subsessionId,
+		LeagueID:     results.LeagueId,
+		SeasonID:     results.SeasonId,
 		LaunchAt:     subsessionLaunchAt,
-		TrackId:      results.Track.TrackId,
-	}).Error
-	if err != nil {
+		TrackID:      results.Track.TrackId,
+	}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	for _, result := range results.SessionResults {
-		eventSesion := models.EventSession{
-			EventID:          subsessionId,
+	// Store all the sessions in the database
+	sessions := make([]models.EventSession, len(results.SessionResults))
+	for i, result := range results.SessionResults {
+		sessions[i] = models.EventSession{
+			SubsessionID:     subsessionId,
 			SimsessionNumber: result.SimsessionNumber,
 			SimsessionType:   result.SimsessionType,
 			SimsessionName:   result.SimsessionName,
 		}
-		err = tx.Create(&eventSesion).Error
-		if err != nil {
-			tx.Rollback()
-			return err
+	}
+	if err = tx.Create(sessions).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Store the participants of each session in the database
+	participants := make([]models.EventSessionParticipant, 0)
+	for _, result := range results.SessionResults {
+		for _, participant := range result.Results {
+			participants = append(participants, models.EventSessionParticipant{
+				SubsessionID:     subsessionId,
+				SimsessionNumber: result.SimsessionNumber,
+				CustID:           participant.CustId,
+				CarID:            participant.CarId,
+			})
 		}
+	}
+	if err = tx.Create(participants).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
 
-		// Store the participants in the database
-		dbData := make([]models.EventSessionParticipant, len(result.Results))
-		for i, participant := range result.Results {
-			dbData[i] = models.EventSessionParticipant{
-				EventSessionID: eventSesion.ID,
-				CustId:         participant.CustId,
-				CarId:          participant.CarId,
-			}
-		}
-		err = tx.Create(dbData).Error
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		// Start 3 workers to get the lap results for each driver
-		numWorkers := 3
-		numJobs := len(result.Results)
-		lapJobsInput := make(chan int, numJobs)
-		lapJobsOutput := make(chan *ParseLapMessage, numJobs)
-		for w := 0; w < numWorkers; w++ {
-			go lapResultsWorker(subsessionId, irClient, lapJobsInput, lapJobsOutput, tx, saveRequests)
-		}
-
-		// Get the single laps for each driver to check if the lap is valid
-		for _, result := range result.Results {
-			lapJobsInput <- result.CustId
-		}
-
-		for a := 0; a < numJobs; a++ {
-			parseLapMessage := <-lapJobsOutput
-			if parseLapMessage.Error != nil {
-				// Empty the input channel to stop pending workers
-				cleanedJobs := 0
-				for len(lapJobsInput) > 0 {
-					<-lapJobsInput
-					cleanedJobs++
-				}
-
-				// Empty the output channel to stop pending workers
-				for i := 0; i < numJobs-a-cleanedJobs-1; i++ {
-					<-lapJobsOutput
-				}
-
-				close(lapJobsOutput)
-				close(lapJobsInput)
-
-				tx.Rollback()
-				return parseLapMessage.Error
-			}
-
-			// Store the laps in the database
-			if len(parseLapMessage.Message) > 0 {
-				dbData := make([]models.Lap, len(parseLapMessage.Message))
-				for i, lap := range parseLapMessage.Message {
-					dbData[i] = models.Lap{
-						EventSessionID: eventSesion.ID,
-						CustId:         lap.CustId,
-						LapEvents:      lap.LapEvents,
-						Incident:       lap.Incident,
-						LapTime:        lap.LapTime,
-						LapNumber:      lap.LapNumber,
-					}
-				}
-
-				err = tx.Create(dbData).Error
-				if err != nil {
-					// Empty the input channel to stop pending workers
-					cleanedJobs := 0
-					for len(lapJobsInput) > 0 {
-						<-lapJobsInput
-						cleanedJobs++
-					}
-
-					// Empty the output channel to stop pending workers
-					for i := 0; i < numJobs-a-cleanedJobs-1; i++ {
-						<-lapJobsOutput
-					}
-
-					close(lapJobsOutput)
-					close(lapJobsInput)
-
-					tx.Rollback()
-					return err
-				}
-			}
-		}
-		close(lapJobsOutput)
-		close(lapJobsInput)
+	// Store the laps
+	if err = tx.Create(laps).Error; err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	log.Println("Session", subsessionId, "parsed")
 
 	return tx.Commit().Error
-}
-
-func lapResultsWorker(subsessionId int, irClient *irapi.IRacingApiClient, lapJobsInput <-chan int, lapJobsOutput chan<- *ParseLapMessage, tx *gorm.DB, saveRequests bool) {
-	for driverId := range lapJobsInput {
-		message := parseLap(subsessionId, irClient, driverId, tx, saveRequests)
-		lapJobsOutput <- message
-	}
 }

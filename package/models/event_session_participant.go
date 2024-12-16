@@ -8,9 +8,11 @@ import (
 type EventSessionParticipant struct {
 	gorm.Model
 
-	EventSessionID uint
-	EventSession   EventSession `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	SubsessionID     int `gorm:"primaryKey; not null"`
+	SimsessionNumber int `gorm:"primaryKey; not null"`
+	CustID           int `gorm:"primaryKey; not null"`
 
-	CustId int
-	CarId  int
+	EventSession EventSession `gorm:"foreignKey:SubsessionID,SimsessionNumber;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+
+	CarID int
 }

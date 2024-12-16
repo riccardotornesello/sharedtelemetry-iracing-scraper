@@ -12,10 +12,11 @@ type Event struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
-	SubsessionId int `gorm:"primarykey"`
-	LeagueId     int `gorm:"index"`
-	SeasonId     int `gorm:"index"`
+	SubsessionID int `gorm:"primarykey"`
+
+	LeagueID int
+	SeasonID int
 
 	LaunchAt time.Time `gorm:"index"`
-	TrackId  int
+	TrackID  int
 }

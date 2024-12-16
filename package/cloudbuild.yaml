@@ -1,0 +1,33 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
+        ".",
+        "--build-arg",
+        "PACKAGE=run_sessions_downloader",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
+        ".",
+        "--build-arg",
+        "PACKAGE=run_season_parser",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
+      ]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
+      ]

@@ -302,7 +302,7 @@ type ResultsLapDataChunk struct {
 
 func (client *IRacingApiClient) GetResults(subsessionId int) (*resultsResponse, error) {
 	url := "/data/results/get?subsession_id=" + strconv.Itoa(subsessionId)
-	body, err := client.Get(url)
+	body, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func (client *IRacingApiClient) GetResults(subsessionId int) (*resultsResponse, 
 
 func (client *IRacingApiClient) GetResultsLapData(subsessionId int, simsessionNumber int, custId int) (*ResultsLapDataResponse, error) {
 	url := "/data/results/lap_data?subsession_id=" + strconv.Itoa(subsessionId) + "&simsession_number=" + strconv.Itoa(simsessionNumber) + "&cust_id=" + strconv.Itoa(custId)
-	body, err := client.Get(url)
+	body, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}

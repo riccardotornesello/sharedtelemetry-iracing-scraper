@@ -202,7 +202,7 @@ type LeagueSeasonSession struct {
 
 func (client *IRacingApiClient) GetLeague(leagueId int, include_licenses bool) (*leagueGetResponse, error) {
 	url := "/data/league/get?league_id=" + strconv.Itoa(leagueId) + "&include_licenses=" + strconv.FormatBool(include_licenses)
-	body, err := client.Get(url)
+	body, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func (client *IRacingApiClient) GetLeague(leagueId int, include_licenses bool) (
 
 func (client *IRacingApiClient) GetLeagueSeasons(leagueId int, retired bool) (*leagueSeasonsResponse, error) {
 	url := "/data/league/seasons?league_id=" + strconv.Itoa(leagueId) + "&retired=" + strconv.FormatBool(retired)
-	body, err := client.Get(url)
+	body, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (client *IRacingApiClient) GetLeagueSeasonSessions(leagueId int, seasonId i
 	}
 
 	url := "/data/league/season_sessions?league_id=" + strconv.Itoa(leagueId) + "&season_id=" + strconv.Itoa(seasonId) + "&results_only=" + resultsOnlyStr
-	body, err := client.Get(url)
+	body, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}

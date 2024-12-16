@@ -8,10 +8,11 @@ import (
 type Lap struct {
 	gorm.Model
 
-	EventSessionID uint
-	EventSession   EventSession `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	SubsessionID     int
+	SimsessionNumber int
+	EventSession     EventSession `gorm:"foreignKey:SubsessionID,SimsessionNumber;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	CustId int
+	CustID int
 
 	LapEvents pq.StringArray `gorm:"type:text[]"`
 	Incident  bool

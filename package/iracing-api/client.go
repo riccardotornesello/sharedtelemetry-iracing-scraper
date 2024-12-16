@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -12,14 +13,6 @@ import (
 	"strings"
 	"time"
 )
-
-type IRacingError struct {
-	Message string `json:"message"`
-}
-
-func (e *IRacingError) Error() string {
-	return e.Message
-}
 
 type IRacingApiClient struct {
 	client *http.Client
@@ -64,7 +57,7 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, &IRacingError{Message: "Login failed"}
+		return nil, fmt.Errorf("error authenticating: %s", resp.Status)
 	}
 
 	defer resp.Body.Close()
@@ -84,27 +77,29 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 	}, nil
 }
 
-func (c *IRacingApiClient) Get(path string) ([]byte, error) {
+func (c *IRacingApiClient) get(path string) ([]byte, error) {
 	resp, err := c.client.Get("https://members-ng.iracing.com" + path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting %s: %w", path, err)
 	}
 
 	// Retry once more if the request failed
 	// TODO: allow for more retries
 	// TODO: allow to skip retrying
 	if resp.StatusCode == 429 {
+		log.Printf("Rate limit exceeded for %s, retrying in a bit", path)
+
 		rateLimitReset := resp.Header.Get("X-RateLimit-Reset")
 		if rateLimitReset == "" {
-			return nil, &IRacingError{Message: "Rate limit exceeded. Can't find rate limit reset time"}
+			return nil, fmt.Errorf("Rate limit exceeded but can't find rate limit reset time")
 		}
 
 		rateLimitResetInt, err := strconv.ParseInt(rateLimitReset, 10, 64)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Error parsing rate limit reset time: %w", err)
 		}
 
-		time.Sleep(time.Until(time.Unix(rateLimitResetInt, 0)))
+		time.Sleep(time.Until(time.Unix(rateLimitResetInt, 0)) + 2*time.Second)
 
 		resp, err = c.client.Get("https://members-ng.iracing.com" + path)
 		if err != nil {
@@ -119,7 +114,7 @@ func (c *IRacingApiClient) Get(path string) ([]byte, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, &IRacingError{Message: string(body)}
+		return nil, fmt.Errorf("error getting %s: %s - %s", path, resp.Status, body)
 	}
 
 	response := &IRacingResponse{}

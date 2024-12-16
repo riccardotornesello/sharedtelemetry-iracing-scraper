@@ -1,17 +1,22 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 )
 
 // EventSession represents iRacing's session parts, like practice, qualifying and race.
 type EventSession struct {
-	gorm.Model
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 
-	EventID int
-	Event   Event `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	SubsessionID     int `gorm:"primaryKey; not null"`
+	SimsessionNumber int `gorm:"primaryKey; not null"`
 
-	SimsessionNumber int
-	SimsessionType   int
-	SimsessionName   string
+	Event Event `gorm:"foreignKey:SubsessionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+
+	SimsessionType int
+	SimsessionName string
 }

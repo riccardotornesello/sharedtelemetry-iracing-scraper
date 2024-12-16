@@ -19,14 +19,27 @@ func Connect(user string, pass string, host string, port string, name string) (*
 		return nil, err
 	}
 
+	// Configure connection pooling
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	sqlDB.SetMaxOpenConns(20)
+	sqlDB.SetMaxIdleConns(2)
+
 	// Migrate the schema
 	// TODO: do not migrate the schema in production
-	db.AutoMigrate(
-		&models.Lap{},
+	if err = db.AutoMigrate(
+		&models.League{},
+		&models.LeagueSeason{},
 		&models.Event{},
 		&models.EventSession{},
 		&models.EventSessionParticipant{},
-	)
+		&models.Lap{},
+	); err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }
