@@ -3,7 +3,7 @@ SELECT cust_id,
 FROM (
         SELECT laps.cust_id,
             laps.subsession_id,
-            SUM(laps.lap_time) / 3 AS avg
+            SUM(laps.lap_time) / 3 / 10000 AS avg
         FROM laps
             LEFT JOIN event_sessions ON event_sessions.subsession_id = laps.subsession_id
             AND laps.simsession_number = event_sessions.simsession_number
@@ -21,4 +21,5 @@ FROM (
             laps.subsession_id
         HAVING COUNT(*) = 3
     )
-GROUP BY cust_id;
+GROUP BY cust_id
+ORDER BY MIN(avg) ASC;

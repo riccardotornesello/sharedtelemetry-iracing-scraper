@@ -1,13 +1,65 @@
 package irapi
 
-import "log"
+import (
+	"io"
+)
 
-func (client *IRacingApiClient) GetDriverStatsByCategoryFormulaCar() []byte {
+func (client *IRacingApiClient) GetDriverStatsByCategoryOval() (io.ReadCloser, error) {
+	url := "/data/driver_stats_by_category/oval"
+	body, err := client.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func (client *IRacingApiClient) GetDriverStatsByCategorySportsCar() (io.ReadCloser, error) {
+	url := "/data/driver_stats_by_category/sports_car"
+	body, err := client.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func (client *IRacingApiClient) GetDriverStatsByCategoryFormulaCar() (io.ReadCloser, error) {
 	url := "/data/driver_stats_by_category/formula_car"
 	body, err := client.get(url)
 	if err != nil {
-		log.Fatal("Query failed")
+		return nil, err
 	}
 
-	return body
+	return body, nil
+}
+
+func (client *IRacingApiClient) GetDriverStatsByCategoryRoad() (io.ReadCloser, error) {
+	url := "/data/driver_stats_by_category/road"
+	body, err := client.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func (client *IRacingApiClient) GetDriverStatsByCategoryDirtOval() (io.ReadCloser, error) {
+	url := "/data/driver_stats_by_category/dirt_oval"
+	body, err := client.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func (client *IRacingApiClient) GetDriverStatsByCategoryDirtRoad() (io.ReadCloser, error) {
+	url := "/data/driver_stats_by_category/dirt_road"
+	body, err := client.get(url)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
 }

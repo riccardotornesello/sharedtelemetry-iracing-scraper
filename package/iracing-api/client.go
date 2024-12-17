@@ -42,7 +42,7 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 
 	client := &http.Client{
 		Jar:     jar,
-		Timeout: 10 * time.Second, // TODO: make this configurable
+		Timeout: 60 * time.Second, // TODO: make this configurable
 	}
 
 	tokenIn := []byte(password + strings.ToLower(email))
@@ -61,13 +61,9 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 	}
 
 	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
 
 	authResponse := &IRacingAuthResponse{}
-	err = json.Unmarshal(body, authResponse)
+	err = json.NewDecoder(resp.Body).Decode(authResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +73,7 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 	}, nil
 }
 
-func (c *IRacingApiClient) get(path string) ([]byte, error) {
+func (c *IRacingApiClient) get(path string) (io.ReadCloser, error) {
 	resp, err := c.client.Get("https://members-ng.iracing.com" + path)
 	if err != nil {
 		return nil, fmt.Errorf("error getting %s: %w", path, err)
@@ -107,53 +103,37 @@ func (c *IRacingApiClient) get(path string) ([]byte, error) {
 		}
 	}
 
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("error getting %s: %s - %s", path, resp.Status)
 	}
 
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("error getting %s: %s - %s", path, resp.Status, body)
-	}
+	defer resp.Body.Close()
 
 	response := &IRacingResponse{}
-	err = json.Unmarshal(body, response)
+	err = json.NewDecoder(resp.Body).Decode(response)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err = c.client.Get(response.Link)
+	payloadResp, err := c.client.Get(response.Link)
 	if err != nil {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
-	body, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
+	return payloadResp.Body, nil
 }
 
-func (c *IRacingApiClient) GetChunks(chunkInfo *IRacingChunkInfo) [][]byte {
-	out := make([][]byte, 0)
+func (c *IRacingApiClient) getChunks(chunkInfo *IRacingChunkInfo) ([]io.ReadCloser, error) {
+	out := make([]io.ReadCloser, len(chunkInfo.ChunkFileNames))
 
-	for _, chunkFileName := range chunkInfo.ChunkFileNames {
+	for i, chunkFileName := range chunkInfo.ChunkFileNames {
 		resp, err := c.client.Get(chunkInfo.BaseDownloadUrl + chunkFileName)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		out = append(out, body)
+		out[i] = resp.Body
 	}
 
-	return out
+	return out, nil
 }

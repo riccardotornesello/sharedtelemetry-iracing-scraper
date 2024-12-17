@@ -37,6 +37,7 @@ func Connect(user string, pass string, host string, port string, name string) (*
 		&models.EventSession{},
 		&models.EventSessionParticipant{},
 		&models.Lap{},
+		&models.Driver{},
 	); err != nil {
 		return nil, err
 	}

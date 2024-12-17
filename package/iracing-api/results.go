@@ -302,13 +302,13 @@ type ResultsLapDataChunk struct {
 
 func (client *IRacingApiClient) GetResults(subsessionId int) (*resultsResponse, error) {
 	url := "/data/results/get?subsession_id=" + strconv.Itoa(subsessionId)
-	body, err := client.get(url)
+	respBody, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &resultsResponse{}
-	err = json.Unmarshal(body, response)
+	err = json.NewDecoder(respBody).Decode(response)
 	if err != nil {
 		return nil, err
 	}
@@ -318,22 +318,26 @@ func (client *IRacingApiClient) GetResults(subsessionId int) (*resultsResponse, 
 
 func (client *IRacingApiClient) GetResultsLapData(subsessionId int, simsessionNumber int, custId int) (*ResultsLapDataResponse, error) {
 	url := "/data/results/lap_data?subsession_id=" + strconv.Itoa(subsessionId) + "&simsession_number=" + strconv.Itoa(simsessionNumber) + "&cust_id=" + strconv.Itoa(custId)
-	body, err := client.get(url)
+	respBody, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &ResultsLapDataResponse{}
-	err = json.Unmarshal(body, response)
+	err = json.NewDecoder(respBody).Decode(response)
 	if err != nil {
 		return nil, err
 	}
 
-	chunksData := client.GetChunks(&response.ChunkInfo)
+	chunksData, err := client.getChunks(&response.ChunkInfo)
+	if err != nil {
+		return nil, err
+	}
+
 	response.Laps = make([]ResultsLapDataChunk, 0)
 	for _, chunk := range chunksData {
 		chunkLaps := make([]ResultsLapDataChunk, 0)
-		err := json.Unmarshal(chunk, &chunkLaps)
+		err := json.NewDecoder(chunk).Decode(&chunkLaps)
 		if err != nil {
 			return nil, err
 		}
