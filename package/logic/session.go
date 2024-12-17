@@ -82,9 +82,12 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 			SimsessionName:   result.SimsessionName,
 		}
 	}
-	if err = tx.Create(sessions).Error; err != nil {
-		tx.Rollback()
-		return err
+
+	if len(sessions) > 0 {
+		if err = tx.Create(sessions).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	// Store the participants of each session in the database
@@ -99,15 +102,20 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 			})
 		}
 	}
-	if err = tx.Create(participants).Error; err != nil {
-		tx.Rollback()
-		return err
+
+	if len(participants) > 0 {
+		if err = tx.Create(participants).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	// Store the laps
-	if err = tx.Create(laps).Error; err != nil {
-		tx.Rollback()
-		return err
+	if len(laps) > 0 {
+		if err = tx.Create(laps).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	log.Println("Session", subsessionId, "parsed")

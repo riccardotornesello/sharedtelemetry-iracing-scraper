@@ -128,7 +128,7 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		if n > 0 {
 			if err = db.Clauses(clause.OnConflict{
 				Columns:   []clause.Column{{Name: "cust_id"}},
-				DoUpdates: clause.Assignments(map[string]interface{}{"name": "location"}),
+				DoUpdates: clause.AssignmentColumns([]string{"name", "location"}),
 			}).Create(drivers[:n]).Error; err != nil {
 				log.Printf("Error inserting drivers: %v", err)
 				w.WriteHeader(http.StatusOK)

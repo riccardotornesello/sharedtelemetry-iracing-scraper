@@ -53,6 +53,10 @@ func BenchmarkDriversParse(b *testing.B) {
 			break
 		}
 
+		if len(drivers) < 10 {
+			b.Logf("Record: %v", record[0])
+		}
+
 		custId, err := strconv.Atoi(record[1])
 		if err != nil {
 			b.Fatalf("Error converting custId to int: %v", err)
