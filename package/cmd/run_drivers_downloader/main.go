@@ -15,6 +15,8 @@ import (
 	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
+const batchSize = 100
+
 var db *gorm.DB
 var irClient *irapi.IRacingApiClient
 
@@ -58,17 +60,18 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if header[0] != "DRIVER" || header[1] != "CUSTID" || header[2] != "LOCATION" {
+	if header[0] != "DRIVER" || header[1] != "CUSTID" || header[2] != "LOCATION" || header[13] != "CLASS" || header[14] != "IRATING" {
 		log.Printf("Invalid CSV header: %v", header)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	// Insert the users in groups of 100
+	// Insert the users in groups of batchSize
 	isEof := false
 
 	for !isEof {
-		drivers := make([]*models.Driver, 100)
+		drivers := make([]*models.Driver, batchSize)
+		driverStats := make([]*models.DriverStats, batchSize)
 		n := 0
 
 		for {
@@ -96,19 +99,41 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 				Location: record[2],
 			}
 
+			irating, err := strconv.Atoi(record[14])
+			if err != nil {
+				log.Printf("Error converting iRating to int: %v", err)
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			driverStats[n] = &models.DriverStats{
+				CustID:      custId,
+				CarCategory: "sports_car",
+				License:     record[13],
+				IRating:     irating,
+			}
+
 			n++
 
-			if n == 100 {
+			if n == batchSize {
 				break
 			}
 		}
 
 		if n > 0 {
+			// Update drivers list
 			if err = db.Clauses(clause.OnConflict{
 				Columns:   []clause.Column{{Name: "cust_id"}},
 				DoUpdates: clause.AssignmentColumns([]string{"name", "location"}),
 			}).Create(drivers[:n]).Error; err != nil {
 				log.Printf("Error inserting drivers: %v", err)
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			// Save stats
+			if err = db.Create(driverStats[:n]).Error; err != nil {
+				log.Printf("Error inserting driver stats: %v", err)
 				w.WriteHeader(http.StatusOK)
 				return
 			}

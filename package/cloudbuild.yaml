@@ -11,6 +11,7 @@ steps:
         "--build-arg",
         "PACKAGE=run_sessions_downloader",
       ]
+    waitFor: ["-"]
 
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -24,6 +25,7 @@ steps:
         "--build-arg",
         "PACKAGE=run_season_parser",
       ]
+    waitFor: ["-"]
 
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -37,6 +39,7 @@ steps:
         "--build-arg",
         "PACKAGE=run_drivers_downloader",
       ]
+    waitFor: ["-"]
 
 images:
   - "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
