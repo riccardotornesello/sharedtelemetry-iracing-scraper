@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -42,8 +43,61 @@ func main() {
 	}
 }
 
+type PubSubMessage struct {
+	Message struct {
+		Data []byte `json:"data,omitempty"`
+		ID   string `json:"id"`
+	} `json:"message"`
+	Subscription string `json:"subscription"`
+}
+
+type SeasonData struct {
+	CarClass string `json:"carClass"`
+}
+
 func PubSubHandler(w http.ResponseWriter, r *http.Request) {
-	csvContent, err := irClient.GetDriverStatsByCategorySportsCar()
+	body, err := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		log.Printf("io.ReadAll: %v", err)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	var m PubSubMessage
+	if err := json.Unmarshal(body, &m); err != nil {
+		log.Printf("json.Unmarshal: %v", err)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	var seasonData SeasonData
+	if err := json.Unmarshal(m.Message.Data, &seasonData); err != nil {
+		log.Printf("json.Unmarshal data: %v", err)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	var csvContent io.ReadCloser
+	switch seasonData.CarClass {
+	case "sports_car":
+		csvContent, err = irClient.GetDriverStatsByCategorySportsCar()
+	case "oval":
+		csvContent, err = irClient.GetDriverStatsByCategoryOval()
+	case "formula_car":
+		csvContent, err = irClient.GetDriverStatsByCategoryFormulaCar()
+	case "road":
+		csvContent, err = irClient.GetDriverStatsByCategoryRoad()
+	case "dirt_oval":
+		csvContent, err = irClient.GetDriverStatsByCategoryDirtOval()
+	case "dirt_road":
+		csvContent, err = irClient.GetDriverStatsByCategoryDirtRoad()
+	default:
+		log.Printf("Invalid car class: %v", seasonData.CarClass)
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	if err != nil {
 		log.Printf("Error getting driver stats by category: %v", err)
 		w.WriteHeader(http.StatusOK)
