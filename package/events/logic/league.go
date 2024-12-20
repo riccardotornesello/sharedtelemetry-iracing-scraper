@@ -11,8 +11,8 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"gorm.io/gorm"
+	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
 	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
-	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
 func ParseLeague(leagueId int, seasonId int, irClient *irapi.IRacingApiClient, db *gorm.DB) error {

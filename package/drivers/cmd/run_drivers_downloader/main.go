@@ -11,9 +11,9 @@ import (
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
+	"riccardotornesello.it/sharedtelemetry/iracing/drivers/models"
 	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
-	"riccardotornesello.it/sharedtelemetry/iracing/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
 const batchSize = 100
@@ -24,7 +24,7 @@ var irClient *irapi.IRacingApiClient
 func main() {
 	var err error
 
-	db, irClient, err = logic.InitHandler()
+	db, irClient, err = common.InitCloudRun(models.AllModels)
 	if err != nil {
 		log.Fatal(err)
 	}

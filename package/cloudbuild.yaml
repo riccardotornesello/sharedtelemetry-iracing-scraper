@@ -9,7 +9,9 @@ steps:
         "--file",
         "Dockerfile",
         "--build-arg",
-        "PACKAGE=run_sessions_downloader",
+        "PACKAGE=events",
+        "--build-arg",
+        "COMMAND=run_sessions_downloader",
       ]
     waitFor: ["-"]
 
@@ -23,7 +25,9 @@ steps:
         "--file",
         "Dockerfile",
         "--build-arg",
-        "PACKAGE=run_season_parser",
+        "PACKAGE=events",
+        "--build-arg",
+        "COMMAND=run_season_parser",
       ]
     waitFor: ["-"]
 
@@ -37,7 +41,9 @@ steps:
         "--file",
         "Dockerfile",
         "--build-arg",
-        "PACKAGE=run_drivers_downloader",
+        "PACKAGE=drivers",
+        "--build-arg",
+        "COMMAND=run_drivers_downloader",
       ]
     waitFor: ["-"]
 

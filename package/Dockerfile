@@ -8,8 +8,9 @@ RUN go mod download
 COPY . ./
 
 ARG PACKAGE
+ARG COMMAND
 
-RUN go build -v -o server ./cmd/${PACKAGE}
+RUN go build -v -o server ./${PACKAGE}/cmd/${COMMAND}
 
 FROM debian:bookworm-slim
 RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \

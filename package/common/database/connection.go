@@ -5,10 +5,9 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"riccardotornesello.it/sharedtelemetry/iracing/models"
 )
 
-func Connect(user string, pass string, host string, port string, name string) (*gorm.DB, error) {
+func Connect(user string, pass string, host string, port string, name string, models []interface{}) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, user, pass, name)
 	if port != "" {
 		dsn = fmt.Sprintf("%s port=%s", dsn, port)
@@ -30,17 +29,12 @@ func Connect(user string, pass string, host string, port string, name string) (*
 
 	// Migrate the schema
 	// TODO: do not migrate the schema in production
-	if err = db.AutoMigrate(
-		&models.League{},
-		&models.LeagueSeason{},
-		&models.Event{},
-		&models.EventSession{},
-		&models.EventSessionParticipant{},
-		&models.Lap{},
-		&models.Driver{},
-		&models.DriverStats{},
-	); err != nil {
-		return nil, err
+	if models != nil && len(models) > 0 {
+		if err = db.AutoMigrate(
+			models...,
+		); err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil

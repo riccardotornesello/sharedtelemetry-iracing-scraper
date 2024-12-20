@@ -6,11 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"gorm.io/gorm"
+	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
+	"riccardotornesello.it/sharedtelemetry/iracing/events/logic"
+	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
 	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
-	"riccardotornesello.it/sharedtelemetry/iracing/logic"
 )
 
 var db *gorm.DB
@@ -19,7 +20,7 @@ var irClient *irapi.IRacingApiClient
 func main() {
 	var err error
 
-	db, irClient, err = logic.InitHandler()
+	db, irClient, err = common.InitCloudRun(models.AllModels)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,9 +47,9 @@ type PubSubMessage struct {
 	Subscription string `json:"subscription"`
 }
 
-type SessionData struct {
-	SubsessionId int    `json:"subsessionId"`
-	LaunchAt     string `json:"launchAt"`
+type SeasonData struct {
+	LeagueId int `json:"leagueId"`
+	SeasonId int `json:"seasonId"`
 }
 
 func PubSubHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,22 +68,15 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var sessionData SessionData
-	if err := json.Unmarshal(m.Message.Data, &sessionData); err != nil {
+	var seasonData SeasonData
+	if err := json.Unmarshal(m.Message.Data, &seasonData); err != nil {
 		log.Printf("json.Unmarshal data: %v", err)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	launchAt, err := time.Parse(time.RFC3339, sessionData.LaunchAt)
-	if err != nil {
-		log.Printf("time.Parse: %v", err)
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-
-	if err := logic.ParseSession(irClient, sessionData.SubsessionId, launchAt, db); err != nil {
-		log.Printf("logic.ParseSession: %v", err)
+	if err := logic.ParseLeague(seasonData.LeagueId, seasonData.SeasonId, irClient, db); err != nil {
+		log.Printf("logic.ParseLeague: %v", err)
 		w.WriteHeader(http.StatusOK)
 		return
 	}
