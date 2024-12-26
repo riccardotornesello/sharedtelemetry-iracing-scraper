@@ -1,0 +1,10 @@
+- Drivers
+  - Cron TODO
+  - Pub sub
+  - Cloud run parser
+- Events
+  - Cron TODO (magari con altro cloud run per indicare quali season scaricare)
+  - Pub sub season
+  - Cloud run season
+  - Pub sub session
+  - Cloud run session

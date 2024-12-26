@@ -15,8 +15,3 @@ resource "google_sql_database_instance" "sharedtelemetry" {
     }
   }
 }
-
-resource "google_sql_database" "database" {
-  name     = "sharedtelemetry"
-  instance = google_sql_database_instance.sharedtelemetry.name
-}
