@@ -1,0 +1,12 @@
+FROM base as builder
+
+ARG PACKAGE
+ARG COMMAND
+
+RUN go build -v -o server ./${PACKAGE}/cmd/${COMMAND}
+
+FROM runtime
+
+COPY --from=builder /app/server /server
+
+CMD ["/server"]

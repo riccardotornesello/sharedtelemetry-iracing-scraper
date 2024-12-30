@@ -1,51 +1,63 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
+      - "build"
+      - "--tag=base"
+      - "--file=Dockerfile-base"
+      - "."
+    id: "base"
+    waitFor: ["-"]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--tag=runtime"
+      - "--file=Dockerfile-runtime"
+      - "."
+    id: "runtime"
+    waitFor: ["-"]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
       [
         "build",
-        "-t",
-        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
-        ".",
-        "--file",
-        "Dockerfile",
+        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
+        "--file=Dockerfile-cmd",
         "--build-arg",
         "PACKAGE=events",
         "--build-arg",
         "COMMAND=run_sessions_downloader",
+        ".",
       ]
-    waitFor: ["-"]
+    waitFor: ["base", "runtime"]
 
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "-t",
-        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
-        ".",
-        "--file",
-        "Dockerfile",
+        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
+        "--file=Dockerfile-cmd",
         "--build-arg",
         "PACKAGE=events",
         "--build-arg",
         "COMMAND=run_season_parser",
+        ".",
       ]
-    waitFor: ["-"]
+    waitFor: ["base", "runtime"]
 
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "-t",
-        "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
-        ".",
-        "--file",
-        "Dockerfile",
+        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
+        "--file=Dockerfile-cmd",
         "--build-arg",
         "PACKAGE=drivers",
         "--build-arg",
         "COMMAND=run_drivers_downloader",
+        ".",
       ]
-    waitFor: ["-"]
+    waitFor: ["base", "runtime"]
 
 images:
   - "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
