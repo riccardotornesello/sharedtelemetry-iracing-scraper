@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/drivers/models"
 	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
@@ -120,6 +122,8 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	date := database.Date(time.Now().Format("2006-01-02"))
+
 	// Insert the users in groups of batchSize
 	isEof := false
 
@@ -163,6 +167,7 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 			driverStats[n] = &models.DriverStats{
 				CustID:      custId,
 				CarCategory: "sports_car",
+				Date:        date,
 				License:     record[13],
 				IRating:     irating,
 			}
