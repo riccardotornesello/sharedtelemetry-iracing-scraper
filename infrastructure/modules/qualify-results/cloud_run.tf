@@ -2,6 +2,8 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
   name     = "qualify-results-frontend"
   location = "europe-west3"
 
+  depends_on = [google_project_iam_member.qualify_results_frontend_runner]
+
   deletion_protection = false
 
   template {
@@ -24,8 +26,8 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
         value = var.db_user
       }
       env {
-        name  = "DB_PASS"
-        value = var.db_pass
+        name  = "DB_PASSWORD"
+        value = var.db_password
       }
       env {
         name  = "DB_NAME"

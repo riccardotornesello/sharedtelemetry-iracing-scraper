@@ -29,7 +29,7 @@ module "qualify_results" {
   source = "./modules/qualify-results"
 
   db_user            = module.events.db_user
-  db_pass            = module.events.db_pass
+  db_password        = var.db_password
   db_name            = module.events.db_name
   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
 }

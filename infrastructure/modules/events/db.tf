@@ -13,10 +13,6 @@ output "db_user" {
   value = google_sql_user.events_parser.name
 }
 
-output "db_pass" {
-  value = google_sql_user.events_parser.password
-}
-
 output "db_name" {
   value = google_sql_database.database.name
 }
