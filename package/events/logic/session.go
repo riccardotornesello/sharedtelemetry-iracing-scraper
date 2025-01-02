@@ -2,7 +2,7 @@ package logic
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"gorm.io/gorm"
@@ -11,25 +11,24 @@ import (
 )
 
 func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB) error {
-	log.Println("Parsing session", subsessionId)
-
 	// Skip if the session is already in the database
 	var count int64
-	db.Model(&models.Event{}).Where("subsession_id = ?", subsessionId).Count(&count)
+	db.Model(&models.Session{}).Where("subsession_id = ?", subsessionId).Count(&count)
 	if count > 0 {
-		log.Println("Session", subsessionId, "already parsed")
+		slog.Info("Session", subsessionId, "already parsed")
 		return nil
 	}
 
-	// Get the whole session results
+	// Get the whole session results to extract simsessions and participants
 	results, err := irClient.GetResults(subsessionId)
 	if err != nil {
 		return fmt.Errorf("error getting results for session %d: %w", subsessionId, err)
 	}
 
-	// For each subsession, get the results for each driver
-	// results.SessionResults: one for each session (practice, quali...)
+	// For each simsession, get the results for each driver
+	// results.SessionResults: one for each simsession (practice, quali...)
 	// results.SessionResults[i].Results: one for each driver
+	// NOTE: the laps download can be parallelized but the API has a rate limit and we are already parsing other sessions in parallel
 	laps := make([]models.Lap, 0)
 	for _, simSessionResult := range results.SessionResults {
 		for _, participant := range simSessionResult.Results {
@@ -60,8 +59,8 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		}
 	}()
 
-	// Store the event in the database
-	if err = tx.Create(&models.Event{
+	// Store the session in the database
+	if err = tx.Create(&models.Session{
 		SubsessionID: subsessionId,
 		LeagueID:     results.LeagueId,
 		SeasonID:     results.SeasonId,
@@ -72,10 +71,10 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		return err
 	}
 
-	// Store all the sessions in the database
-	sessions := make([]models.EventSession, len(results.SessionResults))
+	// Store all the simsessions in the database
+	sessions := make([]models.SessionSimsession, len(results.SessionResults))
 	for i, result := range results.SessionResults {
-		sessions[i] = models.EventSession{
+		sessions[i] = models.SessionSimsession{
 			SubsessionID:     subsessionId,
 			SimsessionNumber: result.SimsessionNumber,
 			SimsessionType:   result.SimsessionType,
@@ -90,11 +89,11 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		}
 	}
 
-	// Store the participants of each session in the database
-	participants := make([]models.EventSessionParticipant, 0)
+	// Store the participants of each simsession in the database
+	participants := make([]models.SessionSimsessionParticipant, 0)
 	for _, result := range results.SessionResults {
 		for _, participant := range result.Results {
-			participants = append(participants, models.EventSessionParticipant{
+			participants = append(participants, models.SessionSimsessionParticipant{
 				SubsessionID:     subsessionId,
 				SimsessionNumber: result.SimsessionNumber,
 				CustID:           participant.CustId,
@@ -117,8 +116,6 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 			return err
 		}
 	}
-
-	log.Println("Session", subsessionId, "parsed")
 
 	return tx.Commit().Error
 }

@@ -1,10 +1,10 @@
 package models
 
 var AllModels = []interface{}{
-	&League{},
-	&LeagueSeason{},
-	&Event{},
-	&EventSession{},
-	&EventSessionParticipant{},
 	&Lap{},
+	&LeagueSeason{},
+	&League{},
+	&SessionSimsessionParticipant{},
+	&SessionSimsession{},
+	&Session{},
 }

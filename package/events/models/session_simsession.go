@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// EventSession represents iRacing's session parts, like practice, qualifying and race.
-type EventSession struct {
+// iRacing's session parts, like practice, qualifying and race.
+type SessionSimsession struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
@@ -15,7 +15,7 @@ type EventSession struct {
 	SubsessionID     int `gorm:"primaryKey; not null"`
 	SimsessionNumber int `gorm:"primaryKey; not null"`
 
-	Event Event `gorm:"foreignKey:SubsessionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Session Session `gorm:"foreignKey:SubsessionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	SimsessionType int
 	SimsessionName string

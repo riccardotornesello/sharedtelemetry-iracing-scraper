@@ -6,8 +6,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// Event represents iRacing's session.
-type Event struct {
+// iRacing's session/subsession.
+type Session struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`

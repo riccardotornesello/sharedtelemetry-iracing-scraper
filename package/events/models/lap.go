@@ -10,9 +10,9 @@ type Lap struct {
 
 	SubsessionID     int
 	SimsessionNumber int
-	EventSession     EventSession `gorm:"foreignKey:SubsessionID,SimsessionNumber;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	CustID           int
 
-	CustID int
+	SessionSimsessionParticipant SessionSimsessionParticipant `gorm:"foreignKey:SubsessionID,SimsessionNumber,CustID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 	LapEvents pq.StringArray `gorm:"type:text[]"`
 	Incident  bool

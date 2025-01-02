@@ -49,6 +49,20 @@ steps:
     args:
       [
         "build",
+        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest",
+        "--file=Dockerfile-cmd",
+        "--build-arg",
+        "PACKAGE=events",
+        "--build-arg",
+        "COMMAND=run_leagues_parser",
+        ".",
+      ]
+    waitFor: ["base", "runtime"]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
         "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
         "--file=Dockerfile-cmd",
         "--build-arg",

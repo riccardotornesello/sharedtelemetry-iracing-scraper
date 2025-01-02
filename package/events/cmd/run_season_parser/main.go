@@ -8,9 +8,10 @@ import (
 	"os"
 
 	"gorm.io/gorm"
+	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
+	"riccardotornesello.it/sharedtelemetry/iracing/drivers/models"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
 	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
 )
 
@@ -20,11 +21,29 @@ var irClient *irapi.IRacingApiClient
 func main() {
 	var err error
 
-	db, irClient, err = common.InitCloudRun(models.AllModels)
+	// Get configuration
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbName := os.Getenv("DB_NAME")
+	dbPort := os.Getenv("DB_PORT")
+	dbHost := os.Getenv("DB_HOST")
+
+	iRacingEmail := os.Getenv("IRACING_EMAIL")
+	iRacingPassword := os.Getenv("IRACING_PASSWORD")
+
+	// Initialize database
+	db, err = database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, models.AllModels, 2, 2)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("database.Connect: %v", err)
 	}
 
+	// Initialize iRacing client
+	irClient, err = irapi.NewIRacingApiClient(iRacingEmail, iRacingPassword)
+	if err != nil {
+		log.Fatalf("irapi.NewIRacingApiClient: %v", err)
+	}
+
+	// Start the HTTP server
 	http.HandleFunc("/", PubSubHandler)
 
 	port := os.Getenv("PORT")
@@ -56,32 +75,38 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		log.Printf("io.ReadAll: %v", err)
-		w.WriteHeader(http.StatusOK)
+		common.ReturnException(w, err, "io.ReadAll")
 		return
 	}
 
 	var m PubSubMessage
 	if err := json.Unmarshal(body, &m); err != nil {
-		log.Printf("json.Unmarshal: %v", err)
-		w.WriteHeader(http.StatusOK)
+		common.ReturnException(w, err, "json.Unmarshal")
 		return
 	}
 
 	var seasonData SeasonData
 	if err := json.Unmarshal(m.Message.Data, &seasonData); err != nil {
-		log.Printf("json.Unmarshal data: %v", err)
-		w.WriteHeader(http.StatusOK)
+		common.ReturnException(w, err, "json.Unmarshal")
 		return
 	}
 
-	if err := logic.ParseLeague(seasonData.LeagueId, seasonData.SeasonId, irClient, db); err != nil {
-		log.Printf("logic.ParseLeague: %v", err)
-		w.WriteHeader(http.StatusOK)
+	// TODO: initialize before the handler
+	projectId := os.Getenv("PROJECT_ID")
+	topicId := os.Getenv("TOPIC_ID")
+
+	sessionIds, err := logic.GetMissingSessionIds(seasonData.LeagueId, seasonData.SeasonId, irClient, db)
+	if err != nil {
+		common.ReturnException(w, err, "logic.GetMissingSessionIds")
+		return
+	}
+
+	err = logic.SendSessionsToParse(projectId, topicId, sessionIds)
+	if err != nil {
+		common.ReturnException(w, err, "logic.SendSessionsToParse")
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-
 	return
 }

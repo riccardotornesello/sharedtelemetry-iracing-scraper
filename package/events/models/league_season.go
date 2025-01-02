@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// iRacing's season
 type LeagueSeason struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
