@@ -8,7 +8,7 @@ resource "google_cloud_run_v2_service" "default" {
 
   template {
     service_account                  = google_service_account.runner.email
-    max_instance_request_concurrency = 2
+    max_instance_request_concurrency = 1
     timeout                          = "600s"
 
     scaling {
