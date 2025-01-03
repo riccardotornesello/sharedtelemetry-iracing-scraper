@@ -30,19 +30,42 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 	// For each simsession, get the results for each driver
 	// results.SessionResults: one for each simsession (practice, quali...)
 	// results.SessionResults[i].Results: one for each driver
+	tasksCount := 0
+	for _, simSessionResult := range results.SessionResults {
+		tasksCount += len(simSessionResult.Results)
+	}
+
+	tasksChan := make(chan sessionLapTask, tasksCount)
+	resultsChan := make(chan *models.Lap, 0)
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(nil)
+
+	// Start the workers to call the API and generate the lap models
+	var workersWg sync.WaitGroup
+	for i := 0; i < workers; i++ {
+		workersWg.Add(1)
+		go parseSessionLapsWorker(irClient,
+			tasksChan,
+			resultsChan,
+			ctx,
+			&workersWg,
+			cancel,
+		)
+	}
+
+	// Collect the laps
 	laps := make([]*models.Lap, 0)
 
-	tasksChan := make(chan sessionLapTask, 0)
-	defer close(tasksChan)
+	var outputWg sync.WaitGroup
+	outputWg.Add(1)
+	go func() {
+		defer outputWg.Done()
+		for lap := range resultsChan {
+			laps = append(laps, lap)
+		}
+	}()
 
-	resultsChan := make(chan *models.Lap, 0)
-	defer close(resultsChan)
-
-	ctx, cancel := context.WithCancelCause(context.Background())
-	defer cancel(fmt.Errorf(""))
-
-	wg := sync.WaitGroup{}
-
+	// Send the tasks to the workers
 	for _, simSessionResult := range results.SessionResults {
 		for _, participant := range simSessionResult.Results {
 			tasksChan <- sessionLapTask{
@@ -52,21 +75,16 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 			}
 		}
 	}
+	close(tasksChan) // Signal to workers that no more input will be sent
 
-	// Start the workers to call the API and generate the lap models
-	for i := 0; i < workers; i++ {
-		wg.Add(1)
-		go parseSessionLapsWorker(irClient,
-			tasksChan,
-			resultsChan,
-			ctx,
-			&wg,
-			cancel,
-		)
-	}
+	// Wait for the workers to finish
+	workersWg.Wait()
+	close(resultsChan) // Signal to the collector that no more output will be sent
 
-	wg.Wait()
+	// Wait for the outputs collection to finish
+	outputWg.Wait()
 
+	// In case of error, return it
 	if err = context.Cause(ctx); err != nil {
 		return err
 	}
@@ -153,17 +171,23 @@ func parseSessionLapsWorker(irClient *irapi.IRacingApiClient,
 	wg *sync.WaitGroup,
 	cancel context.CancelCauseFunc,
 ) {
+	defer wg.Done() // Ensure the wait group counter is decremented when the worker exits
+
 	for {
 		select {
 		case <-ctx.Done():
-			wg.Done()
+			// Another worker has already failed
 			return
 
-		case task := <-tasksChan:
+		case task, ok := <-tasksChan:
+			if !ok {
+				// The input channel is closed
+				return
+			}
+
 			res, err := irClient.GetResultsLapData(task.subsessionId, task.simsessionNumber, task.custId)
 			if err != nil {
 				cancel(fmt.Errorf("error getting lap data for session %d, simsession %d, cust %d: %w", task.subsessionId, task.simsessionNumber, task.custId, err))
-				wg.Done()
 				return
 			}
 
@@ -178,10 +202,6 @@ func parseSessionLapsWorker(irClient *irapi.IRacingApiClient,
 					LapNumber:        lap.LapNumber,
 				}
 			}
-
-		default:
-			wg.Done()
-			return
 		}
 	}
 }
