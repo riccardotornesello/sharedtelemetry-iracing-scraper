@@ -2,6 +2,8 @@ resource "google_pubsub_subscription" "leagues_parser_subscription" {
   name  = "leagues_parser_subscription"
   topic = google_pubsub_topic.leagues_parser_topic.name
 
+  ack_deadline_seconds = 120
+
   push_config {
     push_endpoint = module.leagues_parser_function.uri
     oidc_token {
@@ -16,6 +18,8 @@ resource "google_pubsub_subscription" "leagues_parser_subscription" {
 resource "google_pubsub_subscription" "season_parser_subscription" {
   name  = "season_parser_subscription"
   topic = google_pubsub_topic.season_parser_topic.name
+
+  ack_deadline_seconds = 120
 
   push_config {
     push_endpoint = module.season_parser_function.uri

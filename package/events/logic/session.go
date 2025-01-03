@@ -15,7 +15,7 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 	var count int64
 	db.Model(&models.Session{}).Where("subsession_id = ?", subsessionId).Count(&count)
 	if count > 0 {
-		slog.Info("Session", subsessionId, "already parsed")
+		slog.Info(fmt.Sprintf("Session %v already parsed", subsessionId))
 		return nil
 	}
 

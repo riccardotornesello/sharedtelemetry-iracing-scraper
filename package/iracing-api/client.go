@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/http/cookiejar"
 	"strconv"
@@ -15,7 +15,8 @@ import (
 )
 
 type IRacingApiClient struct {
-	client *http.Client
+	client     *http.Client
+	retryAfter time.Time
 }
 
 type IRacingAuthResponse struct {
@@ -74,37 +75,44 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 }
 
 func (c *IRacingApiClient) get(path string) (io.ReadCloser, error) {
-	resp, err := c.client.Get("https://members-ng.iracing.com" + path)
-	if err != nil {
-		return nil, fmt.Errorf("error getting %s: %w", path, err)
-	}
+	var resp *http.Response
+	var err error
 
-	// Retry once more if the request failed
-	// TODO: allow for more retries
-	// TODO: allow to skip retrying
-	if resp.StatusCode == 429 {
-		log.Printf("Rate limit exceeded for %s, retrying in a bit", path)
+	for {
+		if c.retryAfter.After(time.Now()) {
+			slog.Info(fmt.Sprintf("Rate limit exceeded, waiting until %v", c.retryAfter.Format(time.RFC3339)))
+			time.Sleep(time.Until(c.retryAfter))
+		}
 
+		resp, err = c.client.Get("https://members-ng.iracing.com" + path)
+		if err != nil {
+			return nil, fmt.Errorf("error getting %s: %w", path, err)
+		}
+
+		if resp.StatusCode != 429 {
+			break
+		}
+
+		slog.Info(fmt.Sprintf("Rate limit exceeded for %s, retrying in a bit", path))
+
+		// TODO: allow to skip retrying
+		// TODO: allow max retry count
 		rateLimitReset := resp.Header.Get("X-RateLimit-Reset")
 		if rateLimitReset == "" {
-			return nil, fmt.Errorf("Rate limit exceeded but can't find rate limit reset time")
+			break
 		}
 
 		rateLimitResetInt, err := strconv.ParseInt(rateLimitReset, 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing rate limit reset time: %w", err)
+			break
 		}
 
-		time.Sleep(time.Until(time.Unix(rateLimitResetInt, 0)) + 2*time.Second)
-
-		resp, err = c.client.Get("https://members-ng.iracing.com" + path)
-		if err != nil {
-			return nil, err
-		}
+		// Not atomic, but we don't care
+		c.retryAfter = time.Unix(rateLimitResetInt, 0).Add(2 * time.Second)
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("error getting %s: %s - %s", path, resp.Status)
+		return nil, fmt.Errorf("error getting %s: %s", path, resp.Status)
 	}
 
 	defer resp.Body.Close()
