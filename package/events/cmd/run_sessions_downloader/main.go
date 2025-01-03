@@ -98,7 +98,7 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := logic.ParseSession(irClient, sessionData.SubsessionId, launchAt, db); err != nil {
+	if err := logic.ParseSession(irClient, sessionData.SubsessionId, launchAt, db, 10); err != nil {
 		common.ReturnException(w, err, "logic.ParseSession")
 		return
 	}

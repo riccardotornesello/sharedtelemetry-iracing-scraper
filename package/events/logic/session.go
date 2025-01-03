@@ -1,8 +1,10 @@
 package logic
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"gorm.io/gorm"
@@ -10,7 +12,7 @@ import (
 	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
 )
 
-func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB) error {
+func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB, workers int) error {
 	// Skip if the session is already in the database
 	var count int64
 	db.Model(&models.Session{}).Where("subsession_id = ?", subsessionId).Count(&count)
@@ -28,27 +30,45 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 	// For each simsession, get the results for each driver
 	// results.SessionResults: one for each simsession (practice, quali...)
 	// results.SessionResults[i].Results: one for each driver
-	// NOTE: the laps download can be parallelized but the API has a rate limit and we are already parsing other sessions in parallel
-	laps := make([]models.Lap, 0)
+	laps := make([]*models.Lap, 0)
+
+	tasksChan := make(chan sessionLapTask, 0)
+	defer close(tasksChan)
+
+	resultsChan := make(chan *models.Lap, 0)
+	defer close(resultsChan)
+
+	ctx, cancel := context.WithCancelCause(context.Background())
+	defer cancel(fmt.Errorf(""))
+
+	wg := sync.WaitGroup{}
+
 	for _, simSessionResult := range results.SessionResults {
 		for _, participant := range simSessionResult.Results {
-			res, err := irClient.GetResultsLapData(results.SubsessionId, simSessionResult.SimsessionNumber, participant.CustId)
-			if err != nil {
-				return fmt.Errorf("error getting lap data for session %d, simsession %d, cust %d: %w", results.SubsessionId, simSessionResult.SimsessionNumber, participant.CustId, err)
-			}
-
-			for _, lap := range res.Laps {
-				laps = append(laps, models.Lap{
-					SubsessionID:     results.SubsessionId,
-					SimsessionNumber: simSessionResult.SimsessionNumber,
-					CustID:           lap.CustId,
-					LapEvents:        lap.LapEvents,
-					Incident:         lap.Incident,
-					LapTime:          lap.LapTime,
-					LapNumber:        lap.LapNumber,
-				})
+			tasksChan <- sessionLapTask{
+				subsessionId:     results.SubsessionId,
+				simsessionNumber: simSessionResult.SimsessionNumber,
+				custId:           participant.CustId,
 			}
 		}
+	}
+
+	// Start the workers to call the API and generate the lap models
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go parseSessionLapsWorker(irClient,
+			tasksChan,
+			resultsChan,
+			ctx,
+			&wg,
+			cancel,
+		)
+	}
+
+	wg.Wait()
+
+	if err = context.Cause(ctx); err != nil {
+		return err
 	}
 
 	// DB: create a new transaction
@@ -118,4 +138,50 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 	}
 
 	return tx.Commit().Error
+}
+
+type sessionLapTask struct {
+	subsessionId     int
+	simsessionNumber int
+	custId           int
+}
+
+func parseSessionLapsWorker(irClient *irapi.IRacingApiClient,
+	tasksChan <-chan sessionLapTask,
+	resultsChan chan<- *models.Lap,
+	ctx context.Context,
+	wg *sync.WaitGroup,
+	cancel context.CancelCauseFunc,
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			wg.Done()
+			return
+
+		case task := <-tasksChan:
+			res, err := irClient.GetResultsLapData(task.subsessionId, task.simsessionNumber, task.custId)
+			if err != nil {
+				cancel(fmt.Errorf("error getting lap data for session %d, simsession %d, cust %d: %w", task.subsessionId, task.simsessionNumber, task.custId, err))
+				wg.Done()
+				return
+			}
+
+			for _, lap := range res.Laps {
+				resultsChan <- &models.Lap{
+					SubsessionID:     task.subsessionId,
+					SimsessionNumber: task.simsessionNumber,
+					CustID:           lap.CustId,
+					LapEvents:        lap.LapEvents,
+					Incident:         lap.Incident,
+					LapTime:          lap.LapTime,
+					LapNumber:        lap.LapNumber,
+				}
+			}
+
+		default:
+			wg.Done()
+			return
+		}
+	}
 }
