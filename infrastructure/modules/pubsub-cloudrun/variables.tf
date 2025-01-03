@@ -2,6 +2,10 @@ variable "name" {
   type = string
 }
 
+variable "short_name" {
+  type = string
+}
+
 variable "location" {
   type = string
 }
@@ -26,4 +30,9 @@ variable "env" {
 variable "db_connection_name" {
   type    = string
   default = null
+}
+
+variable "pubsub_client" {
+  type    = bool
+  default = false
 }

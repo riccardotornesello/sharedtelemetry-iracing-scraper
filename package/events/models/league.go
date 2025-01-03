@@ -14,4 +14,5 @@ type League struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 
 	LeagueID int `gorm:"primarykey"`
+	// TODO: name
 }

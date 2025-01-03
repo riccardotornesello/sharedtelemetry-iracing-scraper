@@ -92,8 +92,8 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: initialize before the handler
-	projectId := os.Getenv("PROJECT_ID")
-	topicId := os.Getenv("TOPIC_ID")
+	projectId := os.Getenv("PUBSUB_PROJECT")
+	topicId := os.Getenv("PUBSUB_TOPIC")
 
 	sessionIds, err := logic.GetMissingSessionIds(seasonData.LeagueId, seasonData.SeasonId, irClient, db)
 	if err != nil {

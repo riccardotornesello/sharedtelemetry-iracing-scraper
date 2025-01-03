@@ -46,3 +46,7 @@ resource "google_cloud_run_v2_service" "default" {
     }
   }
 }
+
+output "uri" {
+  value = google_cloud_run_v2_service.default.uri
+}

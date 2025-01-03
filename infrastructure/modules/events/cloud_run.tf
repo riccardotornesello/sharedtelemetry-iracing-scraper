@@ -1,125 +1,62 @@
-resource "google_cloud_run_v2_service" "sessions_downloader_function" {
-  name     = "sessions-downloader"
-  location = "europe-west3"
+module "leagues_parser_function" {
+  source = "../pubsub-cloudrun"
 
-  depends_on = [google_project_iam_member.sessions_downloader_runner]
-
-  deletion_protection = false
-
-  template {
-    service_account                  = google_service_account.sessions_downloader_runner.email
-    max_instance_request_concurrency = 50
-
-    scaling {
-      max_instance_count = 1
-    }
-
-    containers {
-      image = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest" # TODO: variable
-
-      volume_mounts {
-        name       = "cloudsql"
-        mount_path = "/cloudsql"
-      }
-
-      env {
-        name  = "IRACING_EMAIL"
-        value = var.iracing_email
-      }
-      env {
-        name  = "IRACING_PASSWORD"
-        value = var.iracing_password
-      }
-      env {
-        name  = "DB_USER"
-        value = google_sql_user.events_parser.name
-      }
-      env {
-        name  = "DB_PASS"
-        value = google_sql_user.events_parser.password
-      }
-      env {
-        name  = "DB_NAME"
-        value = google_sql_database.database.name
-      }
-      env {
-        name  = "DB_HOST"
-        value = "/cloudsql/${var.db_connection_name}"
-      }
-    }
-
-    volumes {
-      name = "cloudsql"
-      cloud_sql_instance {
-        instances = [var.db_connection_name]
-      }
-    }
+  name       = "leagues-parser"
+  short_name = "lp"
+  location   = "europe-west3"
+  project    = "sharedtelemetryapp"
+  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+  env = {
+    IRACING_EMAIL : var.iracing_email,
+    IRACING_PASSWORD : var.iracing_password,
+    DB_USER : google_sql_user.default.name,
+    DB_PASS : google_sql_user.default.password,
+    DB_NAME : google_sql_database.default.name,
+    DB_HOST : "/cloudsql/${var.db_connection_name}",
+    PUBSUB_PROJECT : "sharedtelemetryapp",
+    PUBSUB_TOPIC : google_pubsub_topic.season_parser_topic.name
   }
+  db_connection_name = var.db_connection_name
+  pubsub_client      = true
 }
 
-resource "google_cloud_run_v2_service" "season_parser_function" {
-  name     = "season-parser"
-  location = "europe-west3"
+module "season_parser_function" {
+  source = "../pubsub-cloudrun"
 
-  depends_on = [google_project_iam_member.season_parser_runner]
-
-  deletion_protection = false
-
-  template {
-    service_account                  = google_service_account.season_parser_runner.email
-    max_instance_request_concurrency = 50
-
-    scaling {
-      max_instance_count = 1
-    }
-
-    containers {
-      image = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest" # TODO: variable
-
-      volume_mounts {
-        name       = "cloudsql"
-        mount_path = "/cloudsql"
-      }
-
-      env {
-        name  = "IRACING_EMAIL"
-        value = var.iracing_email
-      }
-      env {
-        name  = "IRACING_PASSWORD"
-        value = var.iracing_password
-      }
-      env {
-        name  = "DB_USER"
-        value = google_sql_user.events_parser.name
-      }
-      env {
-        name  = "DB_PASS"
-        value = google_sql_user.events_parser.password
-      }
-      env {
-        name  = "DB_NAME"
-        value = google_sql_database.database.name
-      }
-      env {
-        name  = "DB_HOST"
-        value = "/cloudsql/${var.db_connection_name}"
-      }
-      env {
-        name  = "PROJECT_ID"
-        value = "sharedtelemetryapp"
-      }
-      env {
-        name  = "TOPIC_ID"
-        value = google_pubsub_topic.sessions_downloader_topic.name
-      }
-    }
-
-    volumes {
-      name = "cloudsql"
-      cloud_sql_instance {
-        instances = [var.db_connection_name]
-      }
-    }
+  name       = "season-parser"
+  short_name = "sp"
+  location   = "europe-west3"
+  project    = "sharedtelemetryapp"
+  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
+  env = {
+    IRACING_EMAIL : var.iracing_email,
+    IRACING_PASSWORD : var.iracing_password,
+    DB_USER : google_sql_user.default.name,
+    DB_PASS : google_sql_user.default.password,
+    DB_NAME : google_sql_database.default.name,
+    DB_HOST : "/cloudsql/${var.db_connection_name}",
+    PUBSUB_PROJECT : "sharedtelemetryapp",
+    PUBSUB_TOPIC : google_pubsub_topic.sessions_downloader_topic.name
   }
+  db_connection_name = var.db_connection_name
+  pubsub_client      = true
+}
+
+module "sessions_downloader_function" {
+  source = "../pubsub-cloudrun"
+
+  name       = "sessions-downloader"
+  short_name = "sd"
+  location   = "europe-west3"
+  project    = "sharedtelemetryapp"
+  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
+  env = {
+    IRACING_EMAIL : var.iracing_email,
+    IRACING_PASSWORD : var.iracing_password,
+    DB_USER : google_sql_user.default.name,
+    DB_PASS : google_sql_user.default.password,
+    DB_NAME : google_sql_database.default.name,
+    DB_HOST : "/cloudsql/${var.db_connection_name}",
+  }
+  db_connection_name = var.db_connection_name
 }

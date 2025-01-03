@@ -79,7 +79,7 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, season := range seasonInfos {
 		result := pubSubTopic.Publish(pubSubCtx, &pubsub.Message{
-			Data: []byte("{\"leagueId\":" + strconv.Itoa(season.LeagueId) + ",\"seasonId\":\"" + strconv.Itoa(season.SeasonId) + "\"}"),
+			Data: []byte("{\"leagueId\":" + strconv.Itoa(season.LeagueId) + ",\"seasonId\":" + strconv.Itoa(season.SeasonId) + "}"),
 		})
 
 		wg.Add(1)

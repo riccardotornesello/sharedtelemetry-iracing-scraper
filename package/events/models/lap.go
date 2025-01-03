@@ -8,9 +8,9 @@ import (
 type Lap struct {
 	gorm.Model
 
-	SubsessionID     int
-	SimsessionNumber int
-	CustID           int
+	SubsessionID     int `gorm:"not null"`
+	SimsessionNumber int `gorm:"not null"`
+	CustID           int `gorm:"not null"`
 
 	SessionSimsessionParticipant SessionSimsessionParticipant `gorm:"foreignKey:SubsessionID,SimsessionNumber,CustID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
