@@ -9,7 +9,7 @@ resource "google_cloud_run_v2_service" "default" {
   template {
     service_account                  = google_service_account.runner.email
     max_instance_request_concurrency = 1
-    timeout                          = "600s"
+    timeout                          = var.timeout
 
     scaling {
       max_instance_count = var.max_instance_count
@@ -47,6 +47,6 @@ resource "google_cloud_run_v2_service" "default" {
   }
 }
 
-output "uri" {
-  value = google_cloud_run_v2_service.default.uri
+output "cloud_run" {
+  value = google_cloud_run_v2_service.default
 }

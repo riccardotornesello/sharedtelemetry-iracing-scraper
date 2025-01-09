@@ -36,3 +36,18 @@ variable "pubsub_client" {
   type    = bool
   default = false
 }
+
+variable "ack_deadline_seconds" {
+  type    = number
+  default = 300
+}
+
+variable "timeout" {
+  type    = string
+  default = "600s"
+}
+
+variable "cron" {
+  type    = string
+  default = null
+}

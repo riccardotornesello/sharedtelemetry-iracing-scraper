@@ -1,11 +1,11 @@
-module "leagues_parser_function" {
+module "sessions_downloader_function" {
   source = "../pubsub-cloudrun"
 
-  name       = "leagues-parser"
-  short_name = "lp"
+  name       = "sessions-downloader"
+  short_name = "sd"
   location   = "europe-west3"
   project    = "sharedtelemetryapp"
-  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,
@@ -13,11 +13,8 @@ module "leagues_parser_function" {
     DB_PASS : google_sql_user.default.password,
     DB_NAME : google_sql_database.default.name,
     DB_HOST : "/cloudsql/${var.db_connection_name}",
-    PUBSUB_PROJECT : "sharedtelemetryapp",
-    PUBSUB_TOPIC : google_pubsub_topic.season_parser_topic.name
   }
   db_connection_name = var.db_connection_name
-  pubsub_client      = true
 }
 
 module "season_parser_function" {
@@ -36,20 +33,20 @@ module "season_parser_function" {
     DB_NAME : google_sql_database.default.name,
     DB_HOST : "/cloudsql/${var.db_connection_name}",
     PUBSUB_PROJECT : "sharedtelemetryapp",
-    PUBSUB_TOPIC : google_pubsub_topic.sessions_downloader_topic.name
+    PUBSUB_TOPIC : module.sessions_downloader_function.pubsub_topic.name
   }
   db_connection_name = var.db_connection_name
   pubsub_client      = true
 }
 
-module "sessions_downloader_function" {
+module "leagues_parser_function" {
   source = "../pubsub-cloudrun"
 
-  name       = "sessions-downloader"
-  short_name = "sd"
+  name       = "leagues-parser"
+  short_name = "lp"
   location   = "europe-west3"
   project    = "sharedtelemetryapp"
-  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
+  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,
@@ -57,6 +54,9 @@ module "sessions_downloader_function" {
     DB_PASS : google_sql_user.default.password,
     DB_NAME : google_sql_database.default.name,
     DB_HOST : "/cloudsql/${var.db_connection_name}",
+    PUBSUB_PROJECT : "sharedtelemetryapp",
+    PUBSUB_TOPIC : module.season_parser_function.pubsub_topic.name
   }
   db_connection_name = var.db_connection_name
+  pubsub_client      = true
 }
