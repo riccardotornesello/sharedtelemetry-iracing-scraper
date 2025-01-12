@@ -1,12 +1,12 @@
 resource "google_cloud_scheduler_job" "default" {
-  count = var.cron != null ? 1 : 0
+  for_each = { for job in var.cron : base64encode(job.data) => job }
 
   name        = "${var.name}-job"
   description = "${var.name} job"
-  schedule    = var.cron
+  schedule    = each.value.schedule
 
   pubsub_target {
     topic_name = google_pubsub_topic.default.id
-    data       = base64encode("Ok")
+    data       = base64encode(each.value.data)
   }
 }

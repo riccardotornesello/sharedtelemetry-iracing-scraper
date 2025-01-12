@@ -59,4 +59,8 @@ module "leagues_parser_function" {
   }
   db_connection_name = var.db_connection_name
   pubsub_client      = true
+  cron = [{
+    schedule = "0 * * * *"
+    data     = "ok"
+  }]
 }

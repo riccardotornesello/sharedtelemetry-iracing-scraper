@@ -48,6 +48,9 @@ variable "timeout" {
 }
 
 variable "cron" {
-  type    = string
-  default = null
+  type = list(object({
+    schedule = string
+    data     = string
+  }))
+  default = []
 }
