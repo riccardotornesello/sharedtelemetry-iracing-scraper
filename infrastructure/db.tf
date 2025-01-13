@@ -12,6 +12,13 @@ resource "google_sql_database_instance" "sharedtelemetry" {
 
     ip_configuration {
       ipv4_enabled = true
+
+      dynamic "authorized_networks" {
+        for_each = var.db_whitelist != null ? [var.db_whitelist] : []
+        content {
+          value = authorized_networks.value
+        }
+      }
     }
   }
 }

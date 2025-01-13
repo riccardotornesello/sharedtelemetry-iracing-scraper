@@ -9,3 +9,8 @@ variable "iracing_password" {
 variable "db_password" {
   type = string
 }
+
+variable "db_whitelist" {
+  type    = string
+  default = null
+}
