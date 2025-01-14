@@ -15,21 +15,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 			MIN(avg) AS best_lap
 		FROM (
 					SELECT laps.cust_id,
-							(events.launch_at AT TIME ZONE 'CET')::date AS launch_date,
+							(sessions.launch_at AT TIME ZONE 'CET')::date AS launch_date,
 							laps.subsession_id,
 							SUM(laps.lap_time) / 3 / 10000 AS avg
 					FROM laps
-							LEFT JOIN event_sessions ON event_sessions.subsession_id = laps.subsession_id
-							AND laps.simsession_number = event_sessions.simsession_number
-							LEFT JOIN events ON events.subsession_id = event_sessions.subsession_id
-					WHERE event_sessions.simsession_name = 'QUALIFY'
+							LEFT JOIN session_simsessions ON session_simsessions.subsession_id = laps.subsession_id
+							AND laps.simsession_number = session_simsessions.simsession_number
+							LEFT JOIN sessions ON sessions.subsession_id = session_simsessions.subsession_id
+					WHERE session_simsessions.simsession_name = 'QUALIFY'
 							AND laps.incident = false
 							AND laps.lap_time > 0
 							AND laps.lap_number > 0
 							AND NOT laps.lap_events && array ['off track', 'pitted', 'invalid']
-							AND (events.launch_at AT TIME ZONE 'CET')::date = ANY($1)
+							AND (sessions.launch_at AT TIME ZONE 'CET')::date = ANY($1)
 					GROUP BY laps.cust_id,
-							(events.launch_at AT TIME ZONE 'CET')::date,
+							(sessions.launch_at AT TIME ZONE 'CET')::date,
 							laps.subsession_id
 					HAVING COUNT(*) = 3
 			) AS daily_laps
