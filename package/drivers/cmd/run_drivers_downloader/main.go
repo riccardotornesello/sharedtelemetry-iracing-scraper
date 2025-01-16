@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -136,8 +135,6 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := database.Date(time.Now().Format("2006-01-02"))
-
 	// Insert the users in groups of batchSize
 	isEof := false
 
@@ -178,7 +175,6 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 			driverStats[n] = &models.DriverStats{
 				CustID:      custId,
 				CarCategory: "sports_car",
-				Date:        date,
 				License:     record[13],
 				IRating:     irating,
 			}
@@ -200,8 +196,11 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// Save stats
-			if err = db.Create(driverStats[:n]).Error; err != nil {
+			// Update stats
+			if err = db.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "cust_id"}, {Name: "car_category"}},
+				DoUpdates: clause.AssignmentColumns([]string{"license", "i_rating"}),
+			}).Create(driverStats[:n]).Error; err != nil {
 				common.ReturnException(w, err, "db.Create")
 				return
 			}
