@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		WHERE s.launch_at::date = ANY($1)
 		ORDER BY s.launch_at ASC;`;
 
-	const res = await locals.dbConn.query(query, [allDates]);
+	const res = await locals.dbConnEvents.query(query, [allDates]);
 
 	return {
 		sessions: res.rows

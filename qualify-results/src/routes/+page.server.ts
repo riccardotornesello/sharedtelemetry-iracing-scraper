@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		ORDER BY launch_date ASC,
 			best_lap ASC;`;
 
-	const res = await locals.dbConn.query(query, [allDates]);
+	const res = await locals.dbConnEvents.query(query, [allDates]);
 
 	const drivers = (res.rows as any[]).reduce((acc, row) => {
 		acc[row.cust_id] = acc[row.cust_id] || {};
@@ -46,9 +46,21 @@ export const load: PageServerLoad = async ({ locals }) => {
 		return acc;
 	}, {});
 
+	const driverIds = Object.keys(drivers);
+
+	const driverNames = await locals.dbConnDrivers.query(
+		`SELECT cust_id, name FROM drivers WHERE cust_id = ANY($1);`,
+		[driverIds]
+	);
+
+	const driverNamesMap = driverNames.rows.reduce((acc, row) => {
+		acc[row.cust_id] = row.name;
+		return acc;
+	}, {});
+
 	const results = [];
 	for (const [custId, driverResults] of Object.entries(drivers) as any) {
-		const result: any = { custId, sum: 0, isValid: true, laps: {} };
+		const result: any = { custId, name: driverNamesMap[custId], sum: 0, isValid: true, laps: {} };
 
 		for (const [track, trackDates] of Object.entries(dates)) {
 			let minLap = 0;
@@ -90,6 +102,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 	return {
 		bestPerTrack,
 		results: sortedResults,
-		dates,
+		dates
 	};
 };

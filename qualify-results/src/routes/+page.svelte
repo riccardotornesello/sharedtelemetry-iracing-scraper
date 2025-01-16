@@ -23,8 +23,8 @@
 		class="bg-gray-50 text-center text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400"
 	>
 		<tr>
-			<th scope="col" class="px-6 py-3" rowspan="2">id</th>
-			<th scope="col" class="px-6 py-3" rowspan="2">Sum</th>
+			<th scope="col" class="px-6 py-3" rowspan="2">Pilota</th>
+			<th scope="col" class="px-6 py-3" rowspan="2">Somma</th>
 			{#each Object.entries(data.dates) as [track, dates]}
 				<th scope="col" class="px-6 py-3" colspan={dates.length}>{track}</th>
 			{/each}
@@ -40,7 +40,7 @@
 	<tbody>
 		{#each data.results as result}
 			<tr class="border-b bg-white dark:border-gray-700 dark:bg-gray-800">
-				<td class="px-6 py-4">{result.custId}</td>
+				<td class="px-6 py-4">{result.name || result.custId}</td>
 				<td class="px-6 py-4">{formatSeconds(result.sum)}</td>
 				{#each Object.entries(data.dates) as [track, dates]}
 					{#each dates as date}

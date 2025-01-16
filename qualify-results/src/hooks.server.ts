@@ -6,10 +6,15 @@ import { sequence } from '@sveltejs/kit/hooks';
 const handleParaglide: Handle = i18n.handle();
 
 export const handleDb: Handle = async (params) => {
-	const dbConn = await connectToDB();
-	params.event.locals.dbConn = dbConn;
+	const [dbConnEvents, dbConnDrivers] = await connectToDB();
+	params.event.locals.dbConnEvents = dbConnEvents;
+	params.event.locals.dbConnDrivers = dbConnDrivers;
+
 	const response = await params.resolve(params.event);
-	dbConn.release();
+
+	dbConnEvents.release();
+	dbConnDrivers.release();
+
 	return response;
 };
 

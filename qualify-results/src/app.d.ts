@@ -4,7 +4,8 @@ declare global {
 	namespace App {
 		// interface Error {}
 		interface Locals {
-			dbConn: PoolClient;
+			dbConnEvents: PoolClient;
+			dbConnDrivers: PoolClient;
 		}
 		// interface PageData {}
 		// interface PageState {}
