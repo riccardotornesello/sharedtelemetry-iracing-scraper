@@ -1,7 +1,7 @@
 resource "google_cloud_scheduler_job" "default" {
   for_each = { for job in var.cron : base64encode(job.data) => job }
 
-  name        = "${var.name}-job"
+  name        = "${var.name}-job-${index(var.cron, each.value)}"
   description = "${var.name} job"
   schedule    = each.value.schedule
 

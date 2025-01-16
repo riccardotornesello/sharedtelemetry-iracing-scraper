@@ -18,5 +18,20 @@ module "drivers_downloader_function" {
   cron = [{
     schedule = "0 * * * *"
     data     = "{\"carClass\":\"sports_car\"}"
+    }, {
+    schedule = "5 * * * *"
+    data     = "{\"carClass\":\"oval\"}"
+    }, {
+    schedule = "10 * * * *"
+    data     = "{\"carClass\":\"formula_car\"}"
+    }, {
+    schedule = "15 * * * *"
+    data     = "{\"carClass\":\"road\"}"
+    }, {
+    schedule = "20 * * * *"
+    data     = "{\"carClass\":\"dirt_oval\"}"
+    }, {
+    schedule = "25 * * * *"
+    data     = "{\"carClass\":\"dirt_road\"}"
   }]
 }
