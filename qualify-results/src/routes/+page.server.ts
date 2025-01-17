@@ -1,5 +1,21 @@
 import type { PageServerLoad } from './$types';
 import dayjs from 'dayjs';
+import type { DriverResult } from './types';
+
+type DriverNameRow = {
+	cust_id: string;
+	name: string;
+};
+
+type DriverNamesMap = Record<number, string>;
+
+type LapsRow = {
+	cust_id: string;
+	launch_date: string;
+	best_lap: string;
+};
+
+type DriverLaps = Record<string, Record<string, number>>;
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const dates = {
@@ -40,11 +56,11 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const res = await locals.dbConnEvents.query(query, [allDates]);
 
-	const drivers = (res.rows as any[]).reduce((acc, row) => {
+	const drivers: DriverLaps = (res.rows as LapsRow[]).reduce((acc, row) => {
 		acc[row.cust_id] = acc[row.cust_id] || {};
 		acc[row.cust_id][dayjs(row.launch_date).format('YYYY-MM-DD')] = parseFloat(row.best_lap);
 		return acc;
-	}, {});
+	}, {} as DriverLaps);
 
 	const driverIds = Object.keys(drivers);
 
@@ -53,14 +69,23 @@ export const load: PageServerLoad = async ({ locals }) => {
 		[driverIds]
 	);
 
-	const driverNamesMap = driverNames.rows.reduce((acc, row) => {
-		acc[row.cust_id] = row.name;
-		return acc;
-	}, {});
+	const driverNamesMap: DriverNamesMap = (driverNames.rows as DriverNameRow[]).reduce(
+		(acc, row) => {
+			acc[parseInt(row.cust_id)] = row.name;
+			return acc;
+		},
+		{} as DriverNamesMap
+	);
 
-	const results = [];
+	const results: DriverResult[] = [];
 	for (const [custId, driverResults] of Object.entries(drivers) as any) {
-		const result: any = { custId, name: driverNamesMap[custId], sum: 0, isValid: true, laps: {} };
+		const result: DriverResult = {
+			custId,
+			name: driverNamesMap[custId],
+			sum: 0,
+			isValid: true,
+			laps: {}
+		};
 
 		for (const [track, trackDates] of Object.entries(dates)) {
 			let minLap = 0;

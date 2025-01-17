@@ -1,8 +1,10 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	interface CardProps {
 		title?: string;
 		link: string;
-		children?: () => any;
+		children?: Snippet<[]>;
 	}
 
 	let { title, link, children }: CardProps = $props();

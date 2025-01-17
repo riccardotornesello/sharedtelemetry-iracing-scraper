@@ -1,12 +1,14 @@
 <script lang="ts">
 	import dayjs from 'dayjs';
 	import duration from 'dayjs/plugin/duration';
+	import TimeCard from './time-card.svelte';
+	import type { DriverResult } from '../routes/types';
 
 	interface Props {
-		result: any;
+		result: DriverResult;
 		date: string;
 		track: string;
-		bestPerTrack: any;
+		bestPerTrack: Record<string, number>;
 	}
 
 	let { result, date, track, bestPerTrack }: Props = $props();
@@ -24,15 +26,7 @@
 </script>
 
 {#if result.laps[date]}
-	<div
-		class="h-full w-full rounded p-4 font-mono text-gray-300"
-		class:bg-purple-500={isOverallBest}
-		class:text-purple-300={isOverallBest}
-		class:bg-green-500={isPersonalBest && !isOverallBest}
-		class:text-green-300={isPersonalBest && !isOverallBest}
-	>
-		{formatSeconds(result.laps[date].time)}
-	</div>
+	<TimeCard {isPersonalBest} {isOverallBest} time={result.laps[date].time} />
 {:else}
-	<div class="h-full w-full rounded p-4 font-mono text-gray-300">-</div>
+	<TimeCard />
 {/if}
