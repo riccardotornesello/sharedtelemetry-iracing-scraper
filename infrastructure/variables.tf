@@ -11,6 +11,6 @@ variable "db_password" {
 }
 
 variable "db_whitelist" {
-  type    = string
-  default = null
+  type    = list(string)
+  default = []
 }
