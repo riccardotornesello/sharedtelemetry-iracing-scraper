@@ -98,6 +98,19 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// First check if the stats for the chosen car class have been already downloaded in the current day
+	var count int64
+	if err := db.Model(&models.DriverStats{}).Where("car_category = ? AND created_at >= ?", seasonData.CarClass, time.Now().Format("2006-01-02")).Count(&count).Error; err != nil {
+		common.ReturnException(w, err, "db.Model")
+		return
+	}
+
+	if count > 0 {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Get the stats CSV
 	var csvContent io.ReadCloser
 	switch seasonData.CarClass {
 	case "sports_car":
