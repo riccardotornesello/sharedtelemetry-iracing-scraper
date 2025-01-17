@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const dates = {
-		'track 1': ['2024-09-11', '2024-09-14'],
-		'track 2': ['2024-09-12', '2024-09-15']
+		'Algarve International Circuit': ['2024-09-11', '2024-09-14'],
+		'Autodromo Nazionale Monza': ['2024-09-12', '2024-09-15']
 	};
 	const allDates = Object.values(dates).flat();
 
