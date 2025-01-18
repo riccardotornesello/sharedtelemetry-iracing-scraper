@@ -16,22 +16,22 @@ module "drivers_downloader_function" {
   }
   db_connection_name = var.db_connection_name
   cron = [{
-    schedule = "0 * * * *"
+    schedule = "0 3 * * *"
     data     = "{\"carClass\":\"sports_car\"}"
     }, {
-    schedule = "5 * * * *"
+    schedule = "5 3 * * *"
     data     = "{\"carClass\":\"oval\"}"
     }, {
-    schedule = "10 * * * *"
+    schedule = "10 3 * * *"
     data     = "{\"carClass\":\"formula_car\"}"
     }, {
-    schedule = "15 * * * *"
+    schedule = "15 3 * * *"
     data     = "{\"carClass\":\"road\"}"
     }, {
-    schedule = "20 * * * *"
+    schedule = "20 3 * * *"
     data     = "{\"carClass\":\"dirt_oval\"}"
     }, {
-    schedule = "25 * * * *"
+    schedule = "25 3 * * *"
     data     = "{\"carClass\":\"dirt_road\"}"
   }]
 }
