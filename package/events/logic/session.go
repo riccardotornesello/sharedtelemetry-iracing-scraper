@@ -9,7 +9,7 @@ import (
 
 	"gorm.io/gorm"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
-	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
 func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB, workers int) error {

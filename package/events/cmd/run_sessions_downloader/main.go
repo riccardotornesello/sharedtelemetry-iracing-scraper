@@ -13,7 +13,7 @@ import (
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
-	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
 var db *gorm.DB

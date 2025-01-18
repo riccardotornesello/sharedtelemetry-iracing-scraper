@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
-	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
 func TestParseSession(t *testing.T) {

@@ -1,4 +1,4 @@
-module riccardotornesello.it/sharedtelemetry/iracing
+module riccardotornesello.it/sharedtelemetry/iracing/events
 
 go 1.23.2
 
@@ -6,8 +6,14 @@ require (
 	cloud.google.com/go/pubsub v1.45.3
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
+	riccardotornesello.it/sharedtelemetry/iracing/common v0.0.0-00010101000000-000000000000
+	riccardotornesello.it/sharedtelemetry/iracing/irapi v0.0.0-00010101000000-000000000000
+)
+
+replace (
+	riccardotornesello.it/sharedtelemetry/iracing/common => ../common
+	riccardotornesello.it/sharedtelemetry/iracing/irapi => ../iracing-api
 )
 
 require (
@@ -49,4 +55,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/grpc v1.67.1 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
+	gorm.io/driver/postgres v1.5.11 // indirect
 )

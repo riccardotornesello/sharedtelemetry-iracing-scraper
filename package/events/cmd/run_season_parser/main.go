@@ -10,9 +10,9 @@ import (
 	"gorm.io/gorm"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/drivers/models"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/logic"
-	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
+	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
 var db *gorm.DB

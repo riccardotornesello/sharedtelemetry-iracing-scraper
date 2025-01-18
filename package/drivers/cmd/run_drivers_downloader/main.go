@@ -16,7 +16,7 @@ import (
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/drivers/models"
-	irapi "riccardotornesello.it/sharedtelemetry/iracing/iracing-api"
+	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
 // TODO: move logic to dedicated function
