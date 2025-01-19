@@ -26,6 +26,20 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const bestPerTrack: Record<string, number> = {};
 
+	const invalidEvents = [
+		'black flag',
+		'car contact',
+		'car reset',
+		'clock smash',
+		'contact',
+		'discontinuity',
+		'interpolated crossing',
+		'invalid',
+		'lost control',
+		'off track',
+		'pitted'
+	];
+
 	const query = `SELECT cust_id,
 			launch_date,
 			MIN(avg) AS best_lap
@@ -42,7 +56,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 							AND laps.incident = false
 							AND laps.lap_time > 0
 							AND laps.lap_number > 0
-							AND NOT laps.lap_events && array ['off track', 'pitted', 'invalid']
+							AND NOT laps.lap_events && $2
 							AND (sessions.launch_at AT TIME ZONE 'CET')::date = ANY($1)
 					GROUP BY laps.cust_id,
 							(sessions.launch_at AT TIME ZONE 'CET')::date,
@@ -54,7 +68,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		ORDER BY launch_date ASC,
 			best_lap ASC;`;
 
-	const res = await locals.dbConnEvents.query(query, [allDates]);
+	const res = await locals.dbConnEvents.query(query, [allDates, invalidEvents]);
 
 	const drivers: DriverLaps = (res.rows as LapsRow[]).reduce((acc, row) => {
 		acc[row.cust_id] = acc[row.cust_id] || {};
