@@ -1,6 +1,8 @@
 package logic
 
 import (
+	"fmt"
+
 	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
@@ -124,6 +126,39 @@ func ExportSessionResults(db *gorm.DB, dates []string) (map[int]map[int]int, []i
 	return allResults, sessions, sessionDates, driverIds, nil
 }
 
+func GenerateSessionsCsv(db *gorm.DB) (string, error) {
+	// TODO: variable dates
+
+	// Extract the session results
+	results, sessions, sessionDates, drivers, err := ExportSessionResults(db, []string{"2024-09-11", "2024-09-12", "2024-09-14", "2024-09-15"})
+	if err != nil {
+		return "", err
+	}
+
+	// Generate the header
+	csv := "Driver ID,"
+	for _, sessionId := range sessions {
+		csv += fmt.Sprintf("%s,", sessionDates[sessionId])
+	}
+	csv += "\n"
+
+	// Write the results
+	for _, driver := range drivers {
+		csv += fmt.Sprintf("%d,", driver)
+		for _, sessionId := range sessions {
+			timeString := ""
+			lapTime, ok := results[sessionId][driver]
+			if ok {
+				timeString = formatTime(lapTime)
+			}
+			csv += fmt.Sprintf("%s,", timeString)
+		}
+		csv += "\n"
+	}
+
+	return csv, nil
+}
+
 func isLapValid(lapNumber int, lapTime int, lapEvents pq.StringArray, incident bool) bool {
 	if !(lapNumber > 0 && lapTime > 0 && incident == false) {
 		return false
@@ -163,4 +198,14 @@ func isLapPitted(lapEvents pq.StringArray) bool {
 	}
 
 	return false
+}
+
+func formatTime(milliseconds int) string {
+	// Convert milliseconds to minutes and seconds
+	minutes := milliseconds / 60000
+	seconds := (milliseconds % 60000) / 1000
+	milliseconds = milliseconds % 1000
+
+	// Return always two digits for the seconds and three for the milliseconds
+	return fmt.Sprintf("%01d:%02d.%03d", minutes, seconds, milliseconds)
 }
