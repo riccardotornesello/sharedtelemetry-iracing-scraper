@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm/clause"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/drivers/models"
+	models "riccardotornesello.it/sharedtelemetry/iracing/db/drivers_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 

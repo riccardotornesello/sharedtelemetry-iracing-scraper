@@ -1,4 +1,4 @@
-package models
+package drivers_models
 
 import (
 	"time"

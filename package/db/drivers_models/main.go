@@ -1,4 +1,4 @@
-package models
+package drivers_models
 
 var AllModels = []interface{}{
 	&Driver{},

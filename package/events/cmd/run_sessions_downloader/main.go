@@ -11,8 +11,8 @@ import (
 	"gorm.io/gorm"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
 	common "riccardotornesello.it/sharedtelemetry/iracing/common/logic"
+	models "riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/events/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 

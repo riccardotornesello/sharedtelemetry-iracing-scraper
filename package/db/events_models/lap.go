@@ -1,4 +1,4 @@
-package models
+package events_models
 
 import (
 	"github.com/lib/pq"

@@ -5,11 +5,13 @@ go 1.23.2
 require (
 	gorm.io/gorm v1.25.12
 	riccardotornesello.it/sharedtelemetry/iracing/common v0.0.0-00010101000000-000000000000
+	riccardotornesello.it/sharedtelemetry/iracing/db v0.0.0-00010101000000-000000000000
 	riccardotornesello.it/sharedtelemetry/iracing/irapi v0.0.0-00010101000000-000000000000
 )
 
 replace (
 	riccardotornesello.it/sharedtelemetry/iracing/common => ../common
+	riccardotornesello.it/sharedtelemetry/iracing/db => ../db
 	riccardotornesello.it/sharedtelemetry/iracing/irapi => ../iracing-api
 )
 

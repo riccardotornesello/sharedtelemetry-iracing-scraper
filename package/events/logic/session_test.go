@@ -8,7 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
-	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
+	models "riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 

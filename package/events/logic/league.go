@@ -2,7 +2,7 @@ package logic
 
 import (
 	"gorm.io/gorm"
-	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
+	models "riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 )
 
 type SeasonInfo struct {

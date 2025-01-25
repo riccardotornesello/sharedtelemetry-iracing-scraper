@@ -9,7 +9,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"gorm.io/gorm"
-	"riccardotornesello.it/sharedtelemetry/iracing/events/models"
+	models "riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
