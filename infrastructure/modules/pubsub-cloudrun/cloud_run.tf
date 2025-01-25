@@ -18,12 +18,9 @@ resource "google_cloud_run_v2_service" "default" {
     containers {
       image = var.image
 
-      dynamic "volume_mounts" {
-        for_each = var.db_connection_name != null ? [1] : []
-        content {
-          name       = "cloudsql"
-          mount_path = "/cloudsql"
-        }
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
       }
 
       dynamic "env" {
@@ -35,13 +32,10 @@ resource "google_cloud_run_v2_service" "default" {
       }
     }
 
-    dynamic "volumes" {
-      for_each = var.db_connection_name != null ? [1] : []
-      content {
-        name = "cloudsql"
-        cloud_sql_instance {
-          instances = [var.db_connection_name]
-        }
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [var.db_connection_name]
       }
     }
   }

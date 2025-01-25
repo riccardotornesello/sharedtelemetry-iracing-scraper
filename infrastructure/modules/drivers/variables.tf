@@ -17,3 +17,8 @@ variable "iracing_email" {
 variable "iracing_password" {
   type = string
 }
+
+variable "region" {
+  type    = string
+  default = "europe-west1"
+}

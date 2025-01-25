@@ -3,9 +3,9 @@ module "sessions_downloader_function" {
 
   name       = "sessions-downloader"
   short_name = "sd"
-  location   = "europe-west3"
+  location   = var.region
   project    = "sharedtelemetryapp"
-  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
+  image      = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,
@@ -22,9 +22,9 @@ module "season_parser_function" {
 
   name       = "season-parser"
   short_name = "sp"
-  location   = "europe-west3"
+  location   = var.region
   project    = "sharedtelemetryapp"
-  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
+  image      = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,
@@ -44,9 +44,9 @@ module "leagues_parser_function" {
 
   name       = "leagues-parser"
   short_name = "lp"
-  location   = "europe-west3"
+  location   = var.region
   project    = "sharedtelemetryapp"
-  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+  image      = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,

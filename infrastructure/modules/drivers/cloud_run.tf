@@ -3,9 +3,9 @@ module "drivers_downloader_function" {
 
   name       = "drivers-downloader"
   short_name = "dd"
-  location   = "europe-west3"
+  location   = var.region
   project    = "sharedtelemetryapp"
-  image      = "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
+  image      = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,

@@ -14,3 +14,12 @@ variable "db_whitelist" {
   type    = list(string)
   default = []
 }
+
+variable "region" {
+  type    = string
+  default = "europe-west1"
+}
+
+variable "domain" {
+  type = string
+}

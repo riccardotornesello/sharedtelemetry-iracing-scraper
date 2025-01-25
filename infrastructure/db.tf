@@ -3,6 +3,7 @@ resource "google_sql_database_instance" "sharedtelemetry" {
 
   name             = "sessions-db"
   database_version = "POSTGRES_17"
+  region           = var.region
 
   settings {
     edition           = "ENTERPRISE"

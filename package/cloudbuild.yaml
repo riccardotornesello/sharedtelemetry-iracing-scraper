@@ -3,7 +3,7 @@ steps:
     args:
       [
         "build",
-        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
         "--file=events/Dockerfile",
         "--build-arg",
         "COMMAND=run_sessions_downloader",
@@ -15,7 +15,7 @@ steps:
     args:
       [
         "build",
-        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
         "--file=events/Dockerfile",
         "--build-arg",
         "COMMAND=run_season_parser",
@@ -27,7 +27,7 @@ steps:
     args:
       [
         "build",
-        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest",
         "--file=events/Dockerfile",
         "--build-arg",
         "COMMAND=run_leagues_parser",
@@ -39,7 +39,7 @@ steps:
     args:
       [
         "build",
-        "--tag=europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
         "--file=drivers/Dockerfile",
         "--build-arg",
         "COMMAND=run_drivers_downloader",
@@ -48,7 +48,7 @@ steps:
     waitFor: ["-"]
 
 images:
-  - "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
-  - "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
-  - "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
-  - "europe-west3-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"

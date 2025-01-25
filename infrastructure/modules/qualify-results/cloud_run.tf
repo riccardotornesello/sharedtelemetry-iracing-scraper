@@ -1,6 +1,6 @@
 resource "google_cloud_run_v2_service" "qualify_results_frontend" {
   name     = "qualify-results-frontend"
-  location = "europe-west3"
+  location = var.region
 
   depends_on = [google_project_iam_member.qualify_results_frontend_runner]
 
@@ -14,7 +14,7 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
     }
 
     containers {
-      image = "europe-west3-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest" # TODO: variable
+      image = "europe-west1-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest" # TODO: variable
 
       volume_mounts {
         name       = "cloudsql"
@@ -22,19 +22,36 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
       }
 
       env {
-        name  = "DB_USER"
-        value = var.db_user
+        name  = "EVENTS_DB_USER"
+        value = var.events_db_user
       }
       env {
-        name  = "DB_PASSWORD"
-        value = var.db_password
+        name  = "EVENTS_DB_PASSWORD"
+        value = var.events_db_password
       }
       env {
-        name  = "DB_NAME"
-        value = var.db_name
+        name  = "EVENTS_DB_NAME"
+        value = var.events_db_name
       }
       env {
-        name  = "DB_HOST"
+        name  = "EVENTS_DB_HOST"
+        value = "/cloudsql/${var.db_connection_name}"
+      }
+
+      env {
+        name  = "DRIVERS_DB_USER"
+        value = var.drivers_db_user
+      }
+      env {
+        name  = "DRIVERS_DB_PASSWORD"
+        value = var.drivers_db_password
+      }
+      env {
+        name  = "DRIVERS_DB_NAME"
+        value = var.drivers_db_name
+      }
+      env {
+        name  = "DRIVERS_DB_HOST"
         value = "/cloudsql/${var.db_connection_name}"
       }
     }
@@ -48,11 +65,15 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
   }
 }
 
-# resource "google_cloud_run_domain_mapping" "qualify_results_frontend_domain" {
-#   location = "europe-west3"
-#   name     = "verified-domain.com" # TODO
+resource "google_cloud_run_domain_mapping" "default" {
+  location = var.region
+  name     = var.domain
 
-#   spec {
-#     route_name = google_cloud_run_v2_service.qualify_results_frontend.name
-#   }
-# }
+  metadata {
+    namespace = "sharedtelemetryapp"
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.qualify_results_frontend.name
+  }
+}

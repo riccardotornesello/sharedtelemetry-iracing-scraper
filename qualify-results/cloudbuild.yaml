@@ -4,7 +4,7 @@ steps:
     args:
       [
         '-c',
-        'docker pull europe-west3-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest || exit 0'
+        'docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest || exit 0'
       ]
 
   - name: 'gcr.io/cloud-builders/docker'
@@ -12,11 +12,11 @@ steps:
       [
         'build',
         '-t',
-        'europe-west3-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest',
+        'europe-west1-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest',
         '--cache-from',
-        'europe-west3-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest',
+        'europe-west1-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest',
         '.'
       ]
 
 images:
-  ['europe-west3-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest']
+  ['europe-west1-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest']

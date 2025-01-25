@@ -8,7 +8,7 @@ resource "google_project_iam_member" "runner" {
   # Also, if var.pubsub_client is true add the pubsub.publisher role
   for_each = {
     for role in [
-      var.db_connection_name != null ? "roles/cloudsql.client" : null,
+      "roles/cloudsql.client", // TODO: check if var.db_connection_name is not null
       var.pubsub_client ? "roles/pubsub.publisher" : null
     ] : role => role if role != null
   }
