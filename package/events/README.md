@@ -32,7 +32,13 @@ erDiagram
         int LeagueID PK,FK
         int SeasonID PK
     }
-    LEAGUE_SUBSEASON["LEAGUE_SUBSEASON (platform's season with specific rules)"]
+
+    COMPETITION["COMPETITION (platform's season with specific rules)"]
+    COMPETITION_DRIVER
+    COMPETITION_TEAM
+    COMPETITION_CREW
+    EVENT_GROUP
+
     SESSION["SESSION (iRacing's subsession)"] {
         int SubsessionID PK
         int LeagueID
@@ -56,19 +62,25 @@ erDiagram
         int SubsessionID FK
         int SimsessionNumber FK
         int CustID FK
-        string[] LapEvents
+        string[] LapCOMPETITIONs
         bool Incident
         int LapTime
         int LapNumber
     }
 
-    LEAGUE ||--|{ LEAGUE_SEASON: x
-    LEAGUE_SEASON ||--|{ LEAGUE_SUBSEASON: x
+    LEAGUE ||--|{ LEAGUE_SEASON: ""
+
+    LEAGUE_SEASON ||--|{ COMPETITION: ""
+    COMPETITION ||--|{ COMPETITION_TEAM: ""
+    COMPETITION_TEAM ||--|{ COMPETITION_CREW: ""
+    COMPETITION_CREW ||--|{ COMPETITION_DRIVER: ""
+
+    COMPETITION ||--|{ EVENT_GROUP: ""
 
     LEAGUE_SEASON ||--|{ SESSION: "-------"
-    SESSION ||--|{ SESSION_SIMSESSION: x
-    SESSION_SIMSESSION ||--|{ SESSION_SIMSESSION_PARTICIPANT: x
-    SESSION_SIMSESSION_PARTICIPANT ||--|{ LAP: x
+    SESSION ||--|{ SESSION_SIMSESSION: ""
+    SESSION_SIMSESSION ||--|{ SESSION_SIMSESSION_PARTICIPANT: ""
+    SESSION_SIMSESSION_PARTICIPANT ||--|{ LAP: ""
 ```
 
 ## Architecture

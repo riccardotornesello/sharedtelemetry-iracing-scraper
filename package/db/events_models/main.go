@@ -7,4 +7,9 @@ var AllModels = []interface{}{
 	&SessionSimsessionParticipant{},
 	&SessionSimsession{},
 	&Session{},
+	&CompetitionDriver{},
+	&CompetitionCrew{},
+	&CompetitionTeam{},
+	&Competition{},
+	&EventGroup{},
 }
