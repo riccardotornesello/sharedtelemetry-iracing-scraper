@@ -5,6 +5,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func Connect(user string, pass string, host string, port string, name string, models []interface{}, maxOpenConns int, maxIdleConns int) (*gorm.DB, error) {
@@ -13,7 +14,7 @@ func Connect(user string, pass string, host string, port string, name string, mo
 		dsn = fmt.Sprintf("%s port=%s", dsn, port)
 	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Error)})
 	if err != nil {
 		return nil, err
 	}
