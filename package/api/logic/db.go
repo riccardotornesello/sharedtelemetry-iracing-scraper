@@ -64,7 +64,7 @@ func GetEventGroupSessions(db *gorm.DB, trackId int, sessionDate string, leagueI
 	return simsessions, nil
 }
 
-func GetCompetitionDrivers(db *gorm.DB, competitionId int) (map[int]*models.CompetitionDriver, error) {
+func GetCompetitionDrivers(db *gorm.DB, competitionId int) ([]*models.CompetitionDriver, map[int]*models.CompetitionDriver, error) {
 	var competitionDrivers []*models.CompetitionDriver
 	err := db.
 		Joins("Crew").
@@ -74,7 +74,7 @@ func GetCompetitionDrivers(db *gorm.DB, competitionId int) (map[int]*models.Comp
 		Find(&competitionDrivers).
 		Error
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	competitionDriversMap := make(map[int]*models.CompetitionDriver)
@@ -82,7 +82,7 @@ func GetCompetitionDrivers(db *gorm.DB, competitionId int) (map[int]*models.Comp
 		competitionDriversMap[driver.IRacingCustId] = driver
 	}
 
-	return competitionDriversMap, nil
+	return competitionDrivers, competitionDriversMap, nil
 }
 
 func GetLaps(db *gorm.DB, simsessionIds [][]int) ([]*models.Lap, error) {
