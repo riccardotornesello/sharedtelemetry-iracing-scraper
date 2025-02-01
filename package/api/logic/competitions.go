@@ -8,18 +8,18 @@ import (
 )
 
 type CompetitionSession struct {
-	EventGroupId     int
+	EventGroupId     uint
 	Date             string
 	LaunchAt         time.Time
 	SubsessionId     int
 	SimsessionNumber int
 }
 
-func GetCompetitionSessions(db *gorm.DB, competitionId int) ([]*CompetitionSession, error) {
+func GetCompetitionSessions(db *gorm.DB, competitionId int) ([]*CompetitionSession, map[int]*CompetitionSession, error) {
 	var sessions []*CompetitionSession
 	err := db.
 		Table("session_simsessions").
-		Select("event_groups.id, text(date(sessions.launch_at)), sessions.launch_at, session_simsessions.subsession_id, session_simsessions.simsession_number").
+		Select("event_groups.id as event_group_id, text(date(sessions.launch_at)) as date, sessions.launch_at, session_simsessions.subsession_id, session_simsessions.simsession_number").
 		Joins("join sessions on session_simsessions.subsession_id = sessions.subsession_id").
 		Joins("join event_groups on sessions.track_id = event_groups.i_racing_track_id and text(date(sessions.launch_at)) = ANY(event_groups.dates)").
 		Joins("join competitions on competitions.id = event_groups.competition_id").
@@ -31,10 +31,15 @@ func GetCompetitionSessions(db *gorm.DB, competitionId int) ([]*CompetitionSessi
 		Find(&sessions).
 		Error
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return sessions, nil
+	sessionsMap := make(map[int]*CompetitionSession)
+	for _, session := range sessions {
+		sessionsMap[session.SubsessionId] = session
+	}
+
+	return sessions, sessionsMap, nil
 }
 
 func GetEventGroupSessions(db *gorm.DB, trackId int, sessionDate string, leagueId int, seasonId int) ([]*models.SessionSimsession, error) {
@@ -59,7 +64,7 @@ func GetEventGroupSessions(db *gorm.DB, trackId int, sessionDate string, leagueI
 	return simsessions, nil
 }
 
-func GetCompetitionDrivers(db *gorm.DB, competitionId int) ([]*models.CompetitionDriver, error) {
+func GetCompetitionDrivers(db *gorm.DB, competitionId int) (map[int]*models.CompetitionDriver, error) {
 	var competitionDrivers []*models.CompetitionDriver
 	err := db.
 		Joins("Crew").
@@ -72,7 +77,12 @@ func GetCompetitionDrivers(db *gorm.DB, competitionId int) ([]*models.Competitio
 		return nil, err
 	}
 
-	return competitionDrivers, nil
+	competitionDriversMap := make(map[int]*models.CompetitionDriver)
+	for _, driver := range competitionDrivers {
+		competitionDriversMap[driver.IRacingCustId] = driver
+	}
+
+	return competitionDriversMap, nil
 }
 
 func GetLaps(db *gorm.DB, simsessionIds [][]int) ([]*models.Lap, error) {

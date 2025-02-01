@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"testing"
 	"time"
 
@@ -14,9 +15,9 @@ import (
 	"riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 )
 
-type Turn struct {
-	trackId int
-	date    string
+type Rank struct {
+	CustId int
+	Sum    int
 }
 
 func TestA(t *testing.T) {
@@ -42,9 +43,15 @@ func TestA(t *testing.T) {
 	competitionId := 2
 
 	// Get the sessions valid for the competition
-	sessions, err := logic.GetCompetitionSessions(db, competitionId)
+	sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competitionId)
 	if err != nil {
 		t.Fatalf("Error getting competition sessions: %v", err)
+	}
+
+	// Get event groups
+	eventGroups, err := logic.GetEventGroups(db, competitionId)
+	if err != nil {
+		t.Fatalf("Error getting competition event groups: %v", err)
 	}
 
 	// Get drivers
@@ -71,6 +78,7 @@ func TestA(t *testing.T) {
 
 	// Analyze
 	allResults := make(map[int]map[int]int)
+	bestResults := make(map[int]map[uint]map[string]int) // Customer ID, Group, Date, average ms
 
 	currentCustId := 0
 	currentSubsessionId := 0
@@ -123,7 +131,30 @@ func TestA(t *testing.T) {
 
 			if stintValidLaps == 3 {
 				stintEnd = true
-				allResults[lap.CustID][lap.SubsessionID] = stintTimeSum / 3 / 10
+
+				averageTime := stintTimeSum / 3 / 10
+
+				// Store the average time of the session for the driver (only valid stints)
+				allResults[lap.CustID][lap.SubsessionID] = averageTime
+
+				// Store the best result of the driver for the date in the event group (only valid stints)
+				sessionDetails := sessionsMap[lap.SubsessionID]
+				// 1. Add the customer to the map if it does not exist
+				if _, ok := bestResults[lap.CustID]; !ok {
+					bestResults[lap.CustID] = make(map[uint]map[string]int)
+				}
+				// 2. Add the event group to the map if it does not exist
+				if _, ok := bestResults[lap.CustID][sessionDetails.EventGroupId]; !ok {
+					bestResults[lap.CustID][sessionDetails.EventGroupId] = make(map[string]int)
+				}
+				// 3. Add the result to the date if it does not exist or if it is better than the previous one
+				if oldResult, ok := bestResults[lap.CustID][sessionDetails.EventGroupId][sessionDetails.Date]; !ok {
+					bestResults[lap.CustID][sessionDetails.EventGroupId][sessionDetails.Date] = averageTime
+				} else {
+					if oldResult > averageTime {
+						bestResults[lap.CustID][sessionDetails.EventGroupId][sessionDetails.Date] = averageTime
+					}
+				}
 			}
 		} else {
 			stintValidLaps = 0
@@ -165,72 +196,80 @@ func TestA(t *testing.T) {
 		t.Fatalf("Error writing to file: %v", err)
 	}
 
-	/*
-		// TODO: fetch competition info
-
-		leagueId := 4403
-		seasonId := 0
-
-		// Get the event groups
-		eventGroups, err := logic.GetEventGroups(db, competitionId)
-		if err != nil {
-			t.Fatalf("Error getting event groups: %v", err)
+	// Generate the ranking
+	ranking := make([]Rank, 0)
+	for _, driver := range drivers {
+		driverBestResults, ok := bestResults[driver.IRacingCustId]
+		if !ok {
+			ranking = append(ranking, Rank{driver.IRacingCustId, 0})
+			continue
 		}
 
-		// Store the results as driver -> group -> date -> session -> average ms
-		driverResults := make(map[int]map[uint]map[string]map[int]int)
-		for _, driver := range drivers {
-			driverResults[driver.IRacingCustId] = make(map[uint]map[string]map[int]int)
-			for _, eventGroup := range eventGroups {
-				driverResults[driver.IRacingCustId][eventGroup.ID] = make(map[string]map[int]int)
-				for _, date := range eventGroup.Dates {
-					driverResults[driver.IRacingCustId][eventGroup.ID][date] = make(map[int]int)
-				}
-			}
-		}
-
-		// Loop through event groups and store the results
+		sum := 0
+		isValid := true
 		for _, eventGroup := range eventGroups {
-			for _, startDate := range eventGroup.Dates {
-				// Get the valid session ids
-				var simsessionIds [][]int
-				sessions, err := logic.GetEventGroupSessions(db, eventGroup.IRacingTrackId, startDate, leagueId, seasonId)
-				if err != nil {
-					t.Fatalf("Error getting event group sessions: %v", err)
-				}
-				for _, session := range sessions {
-					simsessionIds = append(simsessionIds, []int{session.SubsessionID, session.SimsessionNumber})
-				}
-
-				// Get laps
-				laps, err := logic.GetLaps(db, simsessionIds)
-				if err != nil {
-					t.Fatalf("Error getting laps: %v", err)
-				}
-
-
-			}
-		}
-	*/
-
-	/*
-		// Print the best result for each driver in each group and date
-		for driver, groupResults := range driverResults {
-			log.Printf("Driver %d", driver)
-			for _, dateResults := range groupResults {
-				for date, sessionResults := range dateResults {
-					bestDateResult := 0
-					for _, result := range sessionResults {
-						if result > 0 && (result < bestDateResult || bestDateResult == 0) {
-							bestDateResult = result
-						}
+			if driverBestGroupResults, ok := driverBestResults[eventGroup.ID]; !ok {
+				// If the driver did not participate in the event group, the result is 0
+				isValid = false
+				break
+			} else {
+				// Check if the driver has at least a result in one date of the event group and in case add the best result
+				bestResult := 0
+				for _, result := range driverBestGroupResults {
+					if bestResult == 0 || result < bestResult {
+						bestResult = result
 					}
-					log.Printf("Date %s: %s", date, formatTime(bestDateResult))
+				}
+
+				if bestResult > 0 {
+					sum += bestResult
+				} else {
+					isValid = false
+					break
 				}
 			}
-			log.Println()
 		}
-	*/
+
+		if !isValid {
+			ranking = append(ranking, Rank{driver.IRacingCustId, 0})
+		} else {
+			ranking = append(ranking, Rank{driver.IRacingCustId, sum})
+		}
+	}
+
+	// Sort the ranking by sum. If the sum is 0, put the driver at the end of the ranking
+	sort.Slice(ranking, func(i, j int) bool {
+		if ranking[i].Sum == 0 {
+			return false
+		}
+
+		if ranking[j].Sum == 0 {
+			return true
+		}
+
+		return ranking[i].Sum < ranking[j].Sum
+	})
+
+	// Generate ranking CSV
+	rankingCsv := "Driver,Sum\n"
+	for _, rank := range ranking {
+		driver, ok := drivers[rank.CustId]
+		if !ok {
+			continue
+		}
+
+		rankingCsv += fmt.Sprintf("%s,%s\n", driver.Name, formatTime(rank.Sum))
+	}
+
+	file, err = os.Create("ranking.csv")
+	if err != nil {
+		t.Fatalf("Error creating file: %v", err)
+	}
+
+	_, err = file.WriteString(rankingCsv)
+	if err != nil {
+		t.Fatalf("Error writing to file: %v", err)
+	}
 }
 
 func formatTime(milliseconds int) string {
