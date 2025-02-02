@@ -2,14 +2,15 @@
 	import TimeCard from '../../../components/time-card.svelte';
 	import Ranking from './ranking.svelte';
 
-	let { crew, drivers, eventGroups, overallBest } = $props();
+	let { position, crew, drivers, eventGroups, overallBest } = $props();
 
-	let isOpen = $state(false)
+	let isOpen = $state(true);
 </script>
 
 <tr class="border-b border-gray-700 bg-gray-900">
-	<td>
-		<button class="px-6 py-4 text-center" onclick={() => (isOpen = !isOpen)}>
+	<td class="px-6 py-4 text-center">
+		<button onclick={() => (isOpen = !isOpen)}>
+			P{position}
 			{isOpen ? '▼' : '►'}
 		</button>
 	</td>
