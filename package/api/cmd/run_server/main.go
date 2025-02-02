@@ -376,7 +376,9 @@ func main() {
 		// Generate CSV
 		csv := logic.GenerateSessionsCsv(sessions, drivers, allResults)
 
-		c.String(http.StatusOK, csv)
+		c.Header("Content-Description", "File Transfer")
+		c.Header("Content-Disposition", "attachment; filename=sessions.csv")
+		c.Data(http.StatusOK, "text/csv", []byte(csv))
 	})
 
 	r.Run()
