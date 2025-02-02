@@ -15,6 +15,7 @@
 		</button>
 	</td>
 	<td class="px-6 py-4">{crew.name}</td>
+    <td class="px-6 py-4">{crew.team.name}</td>
 	<td class="px-2 py-2"><TimeCard time={crew.sum} /></td>
 	{#each eventGroups as eventGroup}
 		{#each eventGroup.dates as date}

@@ -18,6 +18,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			crews[driver.crew.id] = {
 				id: driver.crew.id,
 				name: driver.crew.name,
+				team: driver.crew.team,
 				ranking: []
 			};
 		}

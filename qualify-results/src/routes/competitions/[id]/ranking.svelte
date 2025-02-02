@@ -8,6 +8,7 @@
 	<tr class="border-b border-gray-700 bg-gray-800">
 		<td class="px-6 py-4 text-center">P{rank.pos}</td>
 		<td class="px-6 py-4">{drivers[rank.custId]?.name || rank.custId}</td>
+		<td class="px-6 py-4">{drivers[rank.custId]?.crew.team.name}</td>
 		<td class="px-2 py-2">
 			<TimeCard time={rank.sum} />
 		</td>

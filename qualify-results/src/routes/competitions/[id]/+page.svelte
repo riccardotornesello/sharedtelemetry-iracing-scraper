@@ -47,6 +47,7 @@
 		<thead class="bg-gray-700 text-center text-xs uppercase text-gray-400">
 			<tr>
 				<th scope="col" class="px-6 py-3" rowspan="2" colspan="2">Pilota</th>
+				<th scope="col" class="px-6 py-3" rowspan="2">Team</th>
 				<th scope="col" class="px-6 py-3" rowspan="2">Somma</th>
 				{#each data.eventGroups as eventGroup}
 					<th scope="col" class="px-6 py-3" colspan={eventGroup.dates?.length}>{eventGroup.name}</th
