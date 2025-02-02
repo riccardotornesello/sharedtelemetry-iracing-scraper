@@ -11,19 +11,48 @@ import (
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
-	"riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 )
 
 type RankingResponse struct {
-	Ranking     []*Rank                                  `json:"ranking"`
-	Drivers     map[int]*events_models.CompetitionDriver `json:"drivers"`
-	EventGroups []*events_models.EventGroup              `json:"eventGroups"`
+	Ranking     []*Rank             `json:"ranking"`
+	Drivers     map[int]*DriverInfo `json:"drivers"`
+	EventGroups []*EventGroupInfo   `json:"eventGroups"`
+	Competition *CompetitionInfo    `json:"competition"`
 }
 
 type Rank struct {
 	CustId  int                     `json:"custId"`
 	Sum     int                     `json:"sum"`
 	Results map[uint]map[string]int `json:"results"`
+}
+
+type TeamInfo struct {
+	Id   uint   `json:"id"`
+	Name string `json:"name"`
+}
+
+type CrewInfo struct {
+	Id    uint     `json:"id"`
+	Name  string   `json:"name"`
+	CarId int      `json:"carId"`
+	Team  TeamInfo `json:"team"`
+}
+
+type DriverInfo struct {
+	CustId int      `json:"custId"`
+	Crew   CrewInfo `json:"crew"`
+}
+
+type EventGroupInfo struct {
+	Id      uint     `json:"id"`
+	Name    string   `json:"name"`
+	TrackId int      `json:"trackId"`
+	Dates   []string `json:"dates"`
+}
+
+type CompetitionInfo struct {
+	Id   uint   `json:"id"`
+	Name string `json:"name"`
 }
 
 func main() {
@@ -70,7 +99,7 @@ func main() {
 		}
 
 		// Get drivers
-		drivers, driversMap, err := logic.GetCompetitionDrivers(db, competitionId)
+		drivers, _, err := logic.GetCompetitionDrivers(db, competitionId)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition drivers"})
 			return
@@ -239,10 +268,49 @@ func main() {
 			return ranking[i].Sum < ranking[j].Sum
 		})
 
+		// Return the response
+		driversInfo := make(map[int]*DriverInfo)
+		for _, driver := range drivers {
+			driverInfo := &DriverInfo{
+				CustId: driver.IRacingCustId,
+				Crew: CrewInfo{
+					Id:    driver.Crew.ID,
+					Name:  driver.Crew.Name,
+					CarId: driver.Crew.IRacingCarId,
+					Team: TeamInfo{
+						Id:   driver.Crew.Team.ID,
+						Name: driver.Crew.Team.Name,
+					},
+				},
+			}
+
+			driversInfo[driver.IRacingCustId] = driverInfo
+		}
+
+		eventGroupsInfo := make([]*EventGroupInfo, 0)
+		for _, eventGroup := range eventGroups {
+			eventGroupInfo := &EventGroupInfo{
+				Id:      eventGroup.ID,
+				Name:    eventGroup.Name,
+				TrackId: eventGroup.IRacingTrackId,
+				Dates:   eventGroup.Dates,
+			}
+
+			eventGroupsInfo = append(eventGroupsInfo, eventGroupInfo)
+		}
+
+		competition, err := logic.GetCompetition(db, competitionId)
+
+		competitionInfo := &CompetitionInfo{
+			Id:   competition.ID,
+			Name: competition.Name,
+		}
+
 		response := RankingResponse{
 			Ranking:     ranking,
-			EventGroups: eventGroups,
-			Drivers:     driversMap,
+			EventGroups: eventGroupsInfo,
+			Drivers:     driversInfo,
+			Competition: competitionInfo,
 		}
 
 		c.JSON(http.StatusOK, response)

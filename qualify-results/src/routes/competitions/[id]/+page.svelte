@@ -5,13 +5,17 @@
 	import TimeCard from '../../../components/time-card.svelte';
 
 	dayjs.extend(duration);
-	
+
 	function formatDate(date: string): string {
 		return dayjs(date).format('DD/MM');
 	}
-	
+
 	let { data }: { data: PageData } = $props();
 </script>
+
+<h1 class="p-5 text-center text-2xl font-bold text-gray-800 dark:text-gray-200">
+	{data.competition.name}
+</h1>
 
 <table class="w-full table-auto text-left text-sm text-gray-500 rtl:text-right dark:text-gray-400">
 	<thead class="bg-gray-700 text-center text-xs uppercase text-gray-400">
@@ -19,12 +23,12 @@
 			<th scope="col" class="px-6 py-3" rowspan="2" colspan="2">Pilota</th>
 			<th scope="col" class="px-6 py-3" rowspan="2">Somma</th>
 			{#each data.eventGroups as eventGroup}
-				<th scope="col" class="px-6 py-3" colspan={eventGroup.Dates.length}>{eventGroup.Name}</th>
+				<th scope="col" class="px-6 py-3" colspan={eventGroup.dates?.length}>{eventGroup.name}</th>
 			{/each}
 		</tr>
 		<tr>
 			{#each data.eventGroups as eventGroup}
-				{#each eventGroup.Dates as date}
+				{#each eventGroup.dates as date}
 					<th scope="col" class="px-6 py-3"> {formatDate(date)}</th>
 				{/each}
 			{/each}
@@ -40,12 +44,18 @@
 					<TimeCard time={rank.sum} />
 				</td>
 				{#each data.eventGroups as eventGroup}
-					{#each eventGroup.Dates as date}
+					{#each eventGroup.dates as date}
 						<td class="px-2 py-2">
 							<TimeCard
-								isPersonalBest={rank.results?.[eventGroup.ID]?.[date] == Math.min(...Object.values(rank.results?.[eventGroup.ID] || {}))}
-								isOverallBest={rank.results?.[eventGroup.ID]?.[date] == Math.min(...data.ranking.map(r => Object.values(r.results?.[eventGroup.ID] || {})).flat())}
-								time={rank.results?.[eventGroup.ID]?.[date]}
+								isPersonalBest={rank.results?.[eventGroup.id]?.[date] ==
+									Math.min(...Object.values(rank.results?.[eventGroup.id] || {}))}
+								isOverallBest={rank.results?.[eventGroup.id]?.[date] ==
+									Math.min(
+										...data.ranking
+											.map((r) => Object.values(r.results?.[eventGroup.id] || {}))
+											.flat()
+									)}
+								time={rank.results?.[eventGroup.id]?.[date]}
 							/>
 						</td>
 					{/each}

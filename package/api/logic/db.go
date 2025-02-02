@@ -113,6 +113,19 @@ func GetEventGroups(db *gorm.DB, competitionId int) ([]*models.EventGroup, error
 	return groups, nil
 }
 
+func GetCompetition(db *gorm.DB, competitionId int) (*models.Competition, error) {
+	var competition models.Competition
+	err := db.
+		Where("id = ?", competitionId).
+		First(&competition).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &competition, nil
+}
+
 func GetSessionParticipants(db *gorm.DB, subsessionId int, simsessionNumber int) ([]*models.SessionSimsessionParticipant, error) {
 	var participants []*models.SessionSimsessionParticipant
 	err := db.
