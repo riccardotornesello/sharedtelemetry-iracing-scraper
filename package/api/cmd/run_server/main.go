@@ -11,6 +11,7 @@ import (
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
+	"riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 )
 
 type RankingResponse struct {
@@ -53,8 +54,9 @@ type EventGroupInfo struct {
 }
 
 type CompetitionInfo struct {
-	Id   uint   `json:"id"`
-	Name string `json:"name"`
+	Id               uint   `json:"id"`
+	Name             string `json:"name"`
+	CrewDriversCount int    `json:"crewDriversCount"`
 }
 
 func main() {
@@ -71,7 +73,7 @@ func main() {
 	dbHost := os.Getenv("DB_HOST")
 
 	// Initialize database
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, nil, 1, 1)
+	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, events_models.AllModels, 1, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -309,8 +311,9 @@ func main() {
 		competition, err := logic.GetCompetition(db, competitionId)
 
 		competitionInfo := &CompetitionInfo{
-			Id:   competition.ID,
-			Name: competition.Name,
+			Id:               competition.ID,
+			Name:             competition.Name,
+			CrewDriversCount: competition.CrewDriversCount,
 		}
 
 		response := RankingResponse{

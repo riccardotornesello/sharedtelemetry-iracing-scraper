@@ -17,6 +17,7 @@ type Competition struct {
 	SeasonID     int          `gorm:"not null"`
 	LeagueSeason LeagueSeason `gorm:"foreignKey:LeagueID,SeasonID;constraint:OnUpdate:SET NULL,OnDelete:SET NULL;"`
 
-	Name string `gorm:"not null"`
-	Slug string `gorm:"not null;unique"`
+	Name             string `gorm:"not null"`
+	Slug             string `gorm:"not null;unique"`
+	CrewDriversCount int    `gorm:"not null;default:1"`
 }

@@ -13,6 +13,11 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
 
     containers {
       image = "europe-west1-docker.pkg.dev/sharedtelemetryapp/qualify-results/qualify-results-front:latest" # TODO: variable
+
+      env {
+        name  = "API_BASE_URL"
+        value = "api.${var.domain}"
+      }
     }
   }
 }

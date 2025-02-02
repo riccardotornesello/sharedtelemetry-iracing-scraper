@@ -1,13 +1,10 @@
 import type { PageServerLoad } from './$types';
-
-const BASE_URL = 'http://localhost:8080'; // TODO: get from env
-
-const CREW_DRIVERS_COUNT = 2; // TODO: get from competition info
+import { API_BASE_URL } from '$env/dynamic/private';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
 
-	const res = await fetch(`${BASE_URL}/competitions/${id}/ranking`);
+	const res = await fetch(`${API_BASE_URL || 'http://localhost:8080'}/competitions/${id}/ranking`);
 	const { ranking, drivers, eventGroups, competition } = await res.json();
 
 	const crews = {};
@@ -28,9 +25,9 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	for (const crewId of Object.keys(crews)) {
 		const driversWithTime = crews[crewId].ranking.filter((rank) => rank.sum);
-		if (driversWithTime.length >= CREW_DRIVERS_COUNT) {
+		if (driversWithTime.length >= competition.crewDriversCount) {
 			let sum = 0;
-			for (let i = 0; i < CREW_DRIVERS_COUNT; i++) {
+			for (let i = 0; i < competition.crewDriversCount; i++) {
 				sum += driversWithTime[i].sum;
 			}
 			crews[crewId].sum = sum;
