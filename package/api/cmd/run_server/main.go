@@ -21,6 +21,7 @@ type RankingResponse struct {
 }
 
 type Rank struct {
+	Pos     int                     `json:"pos"`
 	CustId  int                     `json:"custId"`
 	Sum     int                     `json:"sum"`
 	Results map[uint]map[string]int `json:"results"`
@@ -268,6 +269,10 @@ func main() {
 
 			return ranking[i].Sum < ranking[j].Sum
 		})
+
+		for i, driver := range ranking {
+			driver.Pos = i + 1
+		}
 
 		// Return the response
 		driversInfo := make(map[int]*DriverInfo)
