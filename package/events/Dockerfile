@@ -5,6 +5,7 @@ WORKDIR /app/events
 # Install dependencies
 COPY ./events/go.* /app/events/
 COPY ./common/go.* /app/common/
+COPY ./db/go.* /app/db/
 COPY ./iracing-api/go.* /app/iracing-api/
 
 RUN go mod download
@@ -12,6 +13,7 @@ RUN go mod download
 # Build
 COPY ./events /app/events
 COPY ./common /app/common
+COPY ./db /app/db
 COPY ./iracing-api /app/iracing-api/
 
 ARG COMMAND

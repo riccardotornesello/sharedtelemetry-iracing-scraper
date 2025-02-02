@@ -14,7 +14,6 @@ require (
 replace (
 	riccardotornesello.it/sharedtelemetry/iracing/common => ../common
 	riccardotornesello.it/sharedtelemetry/iracing/db => ../db
-	riccardotornesello.it/sharedtelemetry/iracing/events => ../events
 )
 
 require (

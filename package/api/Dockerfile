@@ -1,24 +1,20 @@
 FROM golang:1.23-bookworm as builder
 
-WORKDIR /app/drivers
+WORKDIR /app/api
 
 # Install dependencies
-COPY ./drivers/go.* /app/drivers/
+COPY ./api/go.* /app/api/
 COPY ./common/go.* /app/common/
 COPY ./db/go.* /app/db/
-COPY ./iracing-api/go.* /app/iracing-api/
 
 RUN go mod download
 
 # Build
-COPY ./drivers /app/drivers
+COPY ./api /app/api
 COPY ./common /app/common
-COPY ./db /app/db
-COPY ./iracing-api /app/iracing-api/
+COPY ./db /app/db/
 
-ARG COMMAND
-
-RUN go build -v -o /server ./cmd/${COMMAND}
+RUN go build -v -o /server ./cmd/run_server
 
 # Create a minimal image
 FROM debian:bookworm-slim

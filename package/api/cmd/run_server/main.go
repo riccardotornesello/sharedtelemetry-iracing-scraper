@@ -11,13 +11,13 @@ import (
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/common/database"
-	models "riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
+	"riccardotornesello.it/sharedtelemetry/iracing/db/events_models"
 )
 
 type RankingResponse struct {
-	Ranking     []*Rank                           `json:"ranking"`
-	Drivers     map[int]*models.CompetitionDriver `json:"drivers"`
-	EventGroups []*models.EventGroup              `json:"eventGroups"`
+	Ranking     []*Rank                                  `json:"ranking"`
+	Drivers     map[int]*events_models.CompetitionDriver `json:"drivers"`
+	EventGroups []*events_models.EventGroup              `json:"eventGroups"`
 }
 
 type Rank struct {
@@ -40,7 +40,7 @@ func main() {
 	dbHost := os.Getenv("DB_HOST")
 
 	// Initialize database
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, models.AllModels, 1, 1)
+	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, nil, 1, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
