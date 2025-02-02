@@ -1,10 +1,12 @@
 import type { PageServerLoad } from './$types';
-import { API_BASE_URL } from '$env/dynamic/private';
+import { env } from '$env/dynamic/private';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
 
-	const res = await fetch(`${API_BASE_URL || 'http://localhost:8080'}/competitions/${id}/ranking`);
+	const res = await fetch(
+		`${env.API_BASE_URL || 'http://localhost:8080'}/competitions/${id}/ranking`
+	);
 	const { ranking, drivers, eventGroups, competition } = await res.json();
 
 	const crews = {};

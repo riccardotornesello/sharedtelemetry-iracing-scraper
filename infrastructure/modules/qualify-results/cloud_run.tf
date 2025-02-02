@@ -16,7 +16,7 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
 
       env {
         name  = "API_BASE_URL"
-        value = "api.${var.domain}"
+        value = "https://api.${var.domain}"
       }
     }
   }

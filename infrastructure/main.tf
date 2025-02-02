@@ -31,15 +31,6 @@ module "qualify_results" {
   source = "./modules/qualify-results"
   domain = var.domain
 
-  events_db_user     = module.events.db_user.name
-  events_db_password = var.db_password
-  events_db_name     = module.events.db.name
-
-  drivers_db_user     = module.drivers.db_user.name
-  drivers_db_password = var.db_password
-  drivers_db_name     = module.drivers.db.name
-
-  db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
   region             = var.region
 }
 
