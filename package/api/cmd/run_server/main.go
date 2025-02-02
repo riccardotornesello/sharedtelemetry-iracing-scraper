@@ -40,6 +40,7 @@ type CrewInfo struct {
 
 type DriverInfo struct {
 	CustId int      `json:"custId"`
+	Name   string   `json:"name"`
 	Crew   CrewInfo `json:"crew"`
 }
 
@@ -273,6 +274,7 @@ func main() {
 		for _, driver := range drivers {
 			driverInfo := &DriverInfo{
 				CustId: driver.IRacingCustId,
+				Name:   driver.Name,
 				Crew: CrewInfo{
 					Id:    driver.Crew.ID,
 					Name:  driver.Crew.Name,

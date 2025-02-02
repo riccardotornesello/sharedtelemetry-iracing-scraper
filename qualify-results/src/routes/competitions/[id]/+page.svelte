@@ -39,7 +39,7 @@
 		{#each data.ranking as rank, index}
 			<tr class="border-b bg-white dark:border-gray-700 dark:bg-gray-800">
 				<td class="px-6 py-4 text-center">P{index + 1}</td>
-				<td class="px-6 py-4">{data.drivers[rank.custId]?.Name || rank.custId}</td>
+				<td class="px-6 py-4">{data.drivers[rank.custId]?.name || rank.custId}</td>
 				<td class="px-2 py-2">
 					<TimeCard time={rank.sum} />
 				</td>
