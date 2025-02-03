@@ -1,7 +1,18 @@
 <script lang="ts">
 	import TimeCard from '../../../components/time-card.svelte';
+	import type { Crew, DriverRanking } from './types';
 
-	let { ranking, drivers, eventGroups, overallBest } = $props();
+	let {
+		ranking,
+		drivers,
+		eventGroups,
+		overallBest
+	}: {
+		ranking: DriverRanking[];
+		drivers: any;
+		eventGroups: any;
+		overallBest: any;
+	} = $props();
 </script>
 
 {#each ranking as rank}

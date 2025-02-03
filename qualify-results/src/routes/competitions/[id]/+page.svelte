@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import dayjs from 'dayjs';
 	import duration from 'dayjs/plugin/duration';
+	import type { PageData } from './$types';
+	import * as m from '$lib/paraglide/messages.js';
 	import Ranking from './ranking.svelte';
 	import RankingCrew from './ranking-crew.svelte';
 
@@ -13,7 +14,7 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let overallBest = {};
+	let overallBest: Record<number, number> = {};
 	for (const eventGroup of data.eventGroups) {
 		overallBest[eventGroup.id] = Math.min(
 			...data.ranking.map((r) => Object.values(r.results?.[eventGroup.id] || {})).flat()
@@ -22,6 +23,10 @@
 
 	let showOverall = $state(data.competition.crewDriversCount <= 1);
 </script>
+
+<svelte:head>
+	<title>{data.competition.name} - Results</title>
+</svelte:head>
 
 <h1 class="w-full p-5 text-center text-2xl font-bold text-gray-200">
 	{data.competition.name}
@@ -38,9 +43,9 @@
 		<div
 			class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rtl:peer-checked:after:-translate-x-full dark:border-gray-600 dark:bg-gray-700 dark:peer-checked:bg-blue-600 dark:peer-focus:ring-blue-800"
 		></div>
-		<span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300"
-			>Mostra classifica generale</span
-		>
+		<span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+			{m.general_ranking()}
+		</span>
 	</label>
 {/if}
 
@@ -48,12 +53,13 @@
 	<table class="min-w-full table-auto text-left text-sm text-gray-400 rtl:text-right">
 		<thead class="bg-gray-700 text-center text-xs uppercase text-gray-400">
 			<tr>
-				<th scope="col" class="px-6 py-3" rowspan="2" colspan="2">Pilota</th>
-				<th scope="col" class="px-6 py-3" rowspan="2">Team</th>
-				<th scope="col" class="px-6 py-3" rowspan="2">Somma</th>
+				<th scope="col" class="px-6 py-3" rowspan="2" colspan="2">{m.driver()}</th>
+				<th scope="col" class="px-6 py-3" rowspan="2">{m.team()}</th>
+				<th scope="col" class="px-6 py-3" rowspan="2">{m.sum()}</th>
 				{#each data.eventGroups as eventGroup}
-					<th scope="col" class="px-6 py-3" colspan={eventGroup.dates?.length}>{eventGroup.name}</th
-					>
+					<th scope="col" class="px-6 py-3" colspan={eventGroup.dates?.length}>
+						{eventGroup.name}
+					</th>
 				{/each}
 			</tr>
 			<tr>

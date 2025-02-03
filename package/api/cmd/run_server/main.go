@@ -218,7 +218,7 @@ func main() {
 			driverRank := &Rank{
 				CustId:  driver.IRacingCustId,
 				Sum:     0,
-				Results: bestResults[driver.IRacingCustId],
+				Results: bestResults[driver.IRacingCustId], // TODO: add default value, it might be null
 			}
 
 			driverBestResults, ok := bestResults[driver.IRacingCustId]
