@@ -1,2 +1,0 @@
-POST http://localhost:8080/export
-SECRET_KEY: asd
