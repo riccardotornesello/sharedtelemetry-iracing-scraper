@@ -1,18 +1,18 @@
 FROM golang:1.23-bookworm as builder
 
-WORKDIR /app/api
+WORKDIR /packages/apps/app
 
 # Install dependencies
-COPY ./api/go.* /app/api/
-COPY ./common/go.* /app/common/
-COPY ./db/go.* /app/db/
+COPY ./packages/apps/api/go.* /packages/apps/app/
+COPY ./packages/libs/events_models/go.* /packages/libs/events_models/
+COPY ./packages/libs/gorm_utils/go.* /packages/libs/gorm_utils/
 
 RUN go mod download
 
 # Build
-COPY ./api /app/api
-COPY ./common /app/common
-COPY ./db /app/db/
+COPY ./packages/apps/api /packages/apps/app
+COPY ./packages/libs/events_models /packages/libs/events_models
+COPY ./packages/libs/gorm_utils /packages/libs/gorm_utils
 
 RUN go build -v -o /server ./cmd/run_server
 

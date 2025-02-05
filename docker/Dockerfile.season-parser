@@ -1,0 +1,32 @@
+FROM golang:1.23-bookworm as builder
+
+WORKDIR /packages/apps/app
+
+# Install dependencies
+COPY ./packages/apps/season_parser/go.* /packages/apps/app/
+COPY ./packages/libs/cloudrun_utils/go.* /packages/libs/cloudrun_utils/
+COPY ./packages/libs/events_models/go.* /packages/libs/events_models/
+COPY ./packages/libs/gorm_utils/go.* /packages/libs/gorm_utils/
+COPY ./packages/libs/irapi/go.* /packages/libs/irapi/
+
+RUN go mod download
+
+# Build
+COPY ./packages/apps/season_parser /packages/apps/app
+COPY ./packages/libs/cloudrun_utils /packages/libs/cloudrun_utils
+COPY ./packages/libs/events_models /packages/libs/events_models
+COPY ./packages/libs/gorm_utils /packages/libs/gorm_utils
+COPY ./packages/libs/irapi /packages/libs/irapi
+
+RUN go build -v -o /server ./cmd/run_server
+
+# Create a minimal image
+FROM debian:bookworm-slim
+
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /server /server
+
+CMD ["/server"]
