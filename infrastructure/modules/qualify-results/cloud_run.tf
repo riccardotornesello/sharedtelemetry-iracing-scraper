@@ -5,6 +5,10 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
   deletion_protection = false
 
   template {
+    annotations = {
+      "deploy-time" = timestamp()
+    }
+
     service_account = google_service_account.qualify_results_frontend_runner.email
 
     scaling {

@@ -7,6 +7,10 @@ resource "google_cloud_run_v2_service" "default" {
   deletion_protection = false
 
   template {
+    annotations = {
+      "deploy-time" = timestamp()
+    }
+
     service_account                  = google_service_account.runner.email
     max_instance_request_concurrency = 1
     timeout                          = var.timeout

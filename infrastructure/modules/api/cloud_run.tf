@@ -7,6 +7,10 @@ resource "google_cloud_run_v2_service" "api" {
   deletion_protection = false
 
   template {
+    annotations = {
+      "deploy-time" = timestamp()
+    }
+
     service_account = google_service_account.api_runner.email
 
     scaling {

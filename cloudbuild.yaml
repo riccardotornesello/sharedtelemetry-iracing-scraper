@@ -5,16 +5,16 @@ steps:
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:test || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:test",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:latest",
         "--file=docker/Dockerfile.api",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:test",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:latest",
         ".",
       ]
     waitFor: ["api-pull"]
@@ -25,16 +25,16 @@ steps:
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:test || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:test",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
         "--file=docker/Dockerfile.drivers-downloader",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:test",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
         ".",
       ]
     waitFor: ["drivers-downloader-pull"]
@@ -45,16 +45,16 @@ steps:
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:test || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:test",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest",
         "--file=docker/Dockerfile.leagues-parser",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:test",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest",
         ".",
       ]
     waitFor: ["leagues-parser-pull"]
@@ -65,16 +65,16 @@ steps:
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:test || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:test",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:latest",
         "--file=docker/Dockerfile.qualify-results",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:test",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:latest",
         ".",
       ]
     waitFor: ["qualify-results-pull"]
@@ -85,16 +85,16 @@ steps:
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:test || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:test",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
         "--file=docker/Dockerfile.season-parser",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:test",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest",
         ".",
       ]
     waitFor: ["season-parser-pull"]
@@ -105,24 +105,24 @@ steps:
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:test || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:test",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
         "--file=docker/Dockerfile.sessions-downloader",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:test",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest",
         ".",
       ]
     waitFor: ["sessions-downloader-pull"]
 
 images:
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:test"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:test"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:test"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:test"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:test"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:test"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
