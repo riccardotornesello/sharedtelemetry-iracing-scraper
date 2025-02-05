@@ -1,0 +1,25 @@
+FROM node:20-alpine AS builder
+
+ENV NODE_ENV=development
+WORKDIR /app
+
+COPY ./packages/apps/qualify_results/package.json ./packages/apps/qualify_results/yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+COPY ./packages/apps/qualify_results/ .
+RUN yarn build
+
+ENV NODE_ENV=production
+RUN yarn install --frozen-lockfile --production
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/build build/
+COPY --from=builder /app/node_modules node_modules/
+COPY ./packages/apps/qualify_results/package.json ./
+
+EXPOSE 3000
+ENV NODE_ENV=production
+CMD [ "node", "build" ]
