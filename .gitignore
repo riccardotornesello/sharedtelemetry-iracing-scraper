@@ -1,5 +1,4 @@
 *.env
-*.sql
 *.csv
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,node,yarn,svelte
