@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"riccardotornesello.it/sharedtelemetry/iracing/cloudrun_utils/handlers"
@@ -30,6 +31,8 @@ func main() {
 	var err error
 
 	// Get configuration
+	godotenv.Load()
+
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbName := os.Getenv("DB_NAME")

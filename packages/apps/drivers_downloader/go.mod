@@ -3,6 +3,7 @@ module riccardotornesello.it/sharedtelemetry/iracing/drivers_downloader
 go 1.23.2
 
 require (
+	github.com/joho/godotenv v1.5.1
 	gorm.io/gorm v1.25.12
 	riccardotornesello.it/sharedtelemetry/iracing/cloudrun_utils v0.0.0-00010101000000-000000000000
 	riccardotornesello.it/sharedtelemetry/iracing/drivers_models v0.0.0-00010101000000-000000000000
