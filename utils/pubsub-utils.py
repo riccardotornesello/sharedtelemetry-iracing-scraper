@@ -6,9 +6,7 @@ PROJECT_ID = "test-pubsub-327810"
 os.environ["PUBSUB_EMULATOR_HOST"] = "localhost:8085"
 
 topics = {
-    "sessions-downloader-topic": "http://localhost:8001",
-    "season-parser-topic": "http://localhost:8002",
-    "leagues-parser-topic": "http://localhost:8003",
+    "drivers-downloader-topic": "http://host.docker.internal:8081",
 }
 
 
