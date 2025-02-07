@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -63,8 +64,13 @@ func main() {
 		log.Printf("Defaulting to port %s", port)
 	}
 
-	log.Printf("Listening on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	listener, err := net.Listen("tcp4", ":"+port)
+	if err != nil {
+		log.Fatal("Error starting server:", err)
+	}
+
+	log.Println("Listening on", listener.Addr())
+	if err := http.Serve(listener, nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -101,6 +107,8 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Received message for car class:", seasonData.CarClass)
+
 	// First check if the stats for the chosen car class have been already downloaded in the current day
 	var count int64
 	if err := db.Model(&drivers_models.DriverStats{}).Where("car_category = ? AND created_at >= ?", seasonData.CarClass, time.Now().Format("2006-01-02")).Count(&count).Error; err != nil {
@@ -109,6 +117,7 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if count > 0 {
+		log.Println("Stats for car class", seasonData.CarClass, "already downloaded today")
 		w.WriteHeader(http.StatusOK)
 		return
 	}

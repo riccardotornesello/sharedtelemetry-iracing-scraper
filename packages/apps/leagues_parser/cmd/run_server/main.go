@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -60,8 +61,13 @@ func main() {
 		log.Printf("Defaulting to port %s", port)
 	}
 
-	log.Printf("Listening on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	listener, err := net.Listen("tcp4", ":"+port)
+	if err != nil {
+		log.Fatal("Error starting server:", err)
+	}
+
+	log.Println("Listening on", listener.Addr())
+	if err := http.Serve(listener, nil); err != nil {
 		log.Fatal(err)
 	}
 }
