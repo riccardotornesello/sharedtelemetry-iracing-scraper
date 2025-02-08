@@ -23,3 +23,11 @@ variable "region" {
 variable "domain" {
   type = string
 }
+
+variable "project" {
+  type = string
+}
+
+variable "project_number" {
+  type = number
+}

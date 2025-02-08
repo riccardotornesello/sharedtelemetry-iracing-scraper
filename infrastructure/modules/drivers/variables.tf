@@ -19,6 +19,13 @@ variable "iracing_password" {
 }
 
 variable "region" {
-  type    = string
-  default = "europe-west1"
+  type = string
+}
+
+variable "project" {
+  type = string
+}
+
+variable "project_number" {
+  type = number
 }

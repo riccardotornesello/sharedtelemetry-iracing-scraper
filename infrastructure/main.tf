@@ -14,6 +14,8 @@ module "drivers" {
   db_instance_name   = google_sql_database_instance.sharedtelemetry.name
   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
   region             = var.region
+  project            = var.project
+  project_number     = var.project_number
 }
 
 module "events" {
@@ -31,17 +33,17 @@ module "qualify_results" {
   source = "./modules/qualify-results"
   domain = var.domain
 
-  region             = var.region
+  region = var.region
 }
 
 module "api" {
   source = "./modules/api"
   domain = "api.${var.domain}"
 
-  db_user     = module.events.db_user.name
-  db_password = var.db_password
-  db_name     = module.events.db.name
+  db_user            = module.events.db_user.name
+  db_password        = var.db_password
+  db_name            = module.events.db.name
   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
 
-  region             = var.region
+  region = var.region
 }
