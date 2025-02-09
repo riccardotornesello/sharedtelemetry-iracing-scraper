@@ -15,7 +15,7 @@ type CompetitionSession struct {
 	SimsessionNumber int
 }
 
-func GetCompetitionSessions(db *gorm.DB, competitionId int) ([]*CompetitionSession, map[int]*CompetitionSession, error) {
+func GetCompetitionSessions(db *gorm.DB, competitionId uint) ([]*CompetitionSession, map[int]*CompetitionSession, error) {
 	var sessions []*CompetitionSession
 	err := db.
 		Table("session_simsessions").
@@ -64,7 +64,7 @@ func GetEventGroupSessions(db *gorm.DB, trackId int, sessionDate string, leagueI
 	return simsessions, nil
 }
 
-func GetCompetitionDrivers(db *gorm.DB, competitionId int) ([]*events_models.CompetitionDriver, map[int]*events_models.CompetitionDriver, error) {
+func GetCompetitionDrivers(db *gorm.DB, competitionId uint) ([]*events_models.CompetitionDriver, map[int]*events_models.CompetitionDriver, error) {
 	var competitionDrivers []*events_models.CompetitionDriver
 	err := db.
 		Joins("Crew").
@@ -100,7 +100,7 @@ func GetLaps(db *gorm.DB, simsessionIds [][]int) ([]*events_models.Lap, error) {
 	return laps, nil
 }
 
-func GetEventGroups(db *gorm.DB, competitionId int) ([]*events_models.EventGroup, error) {
+func GetEventGroups(db *gorm.DB, competitionId uint) ([]*events_models.EventGroup, error) {
 	var groups []*events_models.EventGroup
 	err := db.
 		Where("competition_id = ?", competitionId).
@@ -117,6 +117,19 @@ func GetCompetition(db *gorm.DB, competitionId int) (*events_models.Competition,
 	var competition events_models.Competition
 	err := db.
 		Where("id = ?", competitionId).
+		First(&competition).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &competition, nil
+}
+
+func GetCompetitionBySlug(db *gorm.DB, slug string) (*events_models.Competition, error) {
+	var competition events_models.Competition
+	err := db.
+		Where("slug = ?", slug).
 		First(&competition).
 		Error
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -81,29 +80,25 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/competitions/:id/ranking", func(c *gin.Context) {
-		competitionIdParam := c.Param("id")
-		competitionId, err := strconv.Atoi(competitionIdParam)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid competition id"})
-			return
-		}
+		// Get the competition
+		competition, err := logic.GetCompetitionBySlug(db, c.Param("id"))
 
 		// Get the sessions valid for the competition
-		sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competitionId)
+		sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition sessions"})
 			return
 		}
 
 		// Get event groups
-		eventGroups, err := logic.GetEventGroups(db, competitionId)
+		eventGroups, err := logic.GetEventGroups(db, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting event groups"})
 			return
 		}
 
 		// Get drivers
-		drivers, _, err := logic.GetCompetitionDrivers(db, competitionId)
+		drivers, _, err := logic.GetCompetitionDrivers(db, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition drivers"})
 			return
@@ -308,8 +303,6 @@ func main() {
 			eventGroupsInfo = append(eventGroupsInfo, eventGroupInfo)
 		}
 
-		competition, err := logic.GetCompetition(db, competitionId)
-
 		competitionInfo := &CompetitionInfo{
 			Id:               competition.ID,
 			Name:             competition.Name,
@@ -327,22 +320,18 @@ func main() {
 	})
 
 	r.GET("/competitions/:id/csv", func(c *gin.Context) {
-		competitionIdParam := c.Param("id")
-		competitionId, err := strconv.Atoi(competitionIdParam)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid competition id"})
-			return
-		}
+		// Get the competition
+		competition, err := logic.GetCompetitionBySlug(db, c.Param("id"))
 
 		// Get the sessions valid for the competition
-		sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competitionId)
+		sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition sessions"})
 			return
 		}
 
 		// Get drivers
-		drivers, _, err := logic.GetCompetitionDrivers(db, competitionId)
+		drivers, _, err := logic.GetCompetitionDrivers(db, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition drivers"})
 			return
