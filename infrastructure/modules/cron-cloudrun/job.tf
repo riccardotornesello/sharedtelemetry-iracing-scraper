@@ -56,10 +56,10 @@ resource "google_service_account" "invoker" {
 }
 
 resource "google_cloud_run_v2_job_iam_binding" "invoker" {
-  project  = var.project
-  location = var.region
+  project  = google_cloud_run_v2_job.default.project
+  location = google_cloud_run_v2_job.default.location
   name     = google_cloud_run_v2_job.default.name
-  role     = "roles/viewer"
+  role     = "roles/run.invoker"
   members  = ["serviceAccount:${google_service_account.invoker.email}"]
 }
 
