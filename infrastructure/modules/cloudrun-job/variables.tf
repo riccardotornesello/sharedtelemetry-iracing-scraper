@@ -29,3 +29,13 @@ variable "short_name" {
 variable "image" {
   type = string
 }
+
+variable "run_after_deploy" {
+  type    = bool
+  default = false
+}
+
+variable "args" {
+  type    = list(string)
+  default = null
+}

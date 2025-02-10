@@ -1,3 +1,10 @@
+provider "google-beta" {
+  project         = "sharedtelemetryapp"
+  region          = var.region
+  zone            = "${var.region}-a"
+  request_timeout = "60s"
+}
+
 provider "google" {
   project         = "sharedtelemetryapp"
   region          = var.region

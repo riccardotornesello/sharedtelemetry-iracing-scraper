@@ -1,8 +1,11 @@
 resource "google_cloud_run_v2_job" "default" {
+  provider = google-beta
+
   name     = var.name
   location = var.region
 
-  deletion_protection = false
+  deletion_protection   = false
+  start_execution_token = var.run_after_deploy ? formatdate("YYYYMMDDhhmmss", timestamp()) : null
 
   template {
     annotations = {
@@ -21,6 +24,7 @@ resource "google_cloud_run_v2_job" "default" {
 
       containers {
         image = var.image
+        args  = var.args
 
         dynamic "env" {
           for_each = var.env
