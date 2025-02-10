@@ -39,15 +39,14 @@ module "season_parser_function" {
   pubsub_client      = true
 }
 
-module "leagues_parser_function" {
-  source = "../cron-cloudrun"
+module "leagues_parser_job" {
+  source = "../cloudrun-job"
 
   name           = "leagues-parser-job"
   short_name     = "lp-job"
   region         = var.region
   project        = var.project
   project_number = var.project_number
-  schedule       = "0 * * * *"
 
   env = {
     IRACING_EMAIL : var.iracing_email,
@@ -65,8 +64,20 @@ module "leagues_parser_function" {
   db_connection_name = var.db_connection_name
 }
 
+module "leagues_parser_job_cron" {
+  source = "../cron"
+
+  name           = "leagues-parser-job"
+  short_name     = "lp-job"
+  schedule       = "0 * * * *"
+  region         = var.region
+  project        = var.project
+  project_number = var.project_number
+  job_name       = module.leagues_parser_job.job.name
+}
+
 resource "google_project_iam_member" "runner" {
   project = var.project
   role    = "roles/pubsub.publisher"
-  member  = "serviceAccount:${module.leagues_parser_function.runner.email}"
+  member  = "serviceAccount:${module.leagues_parser_job.runner.email}"
 }

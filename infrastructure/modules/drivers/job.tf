@@ -1,7 +1,10 @@
-module "drivers_jobs" {
-  source = "../cron-cloudrun"
+variable "classes" {
+  type = map(object({
+    id   = string
+    cron = string
+  }))
 
-  for_each = tomap({
+  default = {
     sports_car = {
       id   = "sports-car"
       cron = "0 3 * * *"
@@ -26,14 +29,19 @@ module "drivers_jobs" {
       id   = "dirt-road"
       cron = "25 3 * * *"
     }
-  })
+  }
+}
+
+module "drivers_jobs" {
+  source = "../cloudrun-job"
+
+  for_each = var.classes
 
   name           = "drivers-downloader-job-${each.value.id}"
   short_name     = "dd-job-${each.value.id}"
   region         = var.region
   project        = var.project
   project_number = var.project_number
-  schedule       = each.value.cron
 
   env = {
     IRACING_EMAIL    = var.iracing_email
@@ -48,4 +56,18 @@ module "drivers_jobs" {
   image = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
 
   db_connection_name = var.db_connection_name
+}
+
+module "drivers_jobs_cron" {
+  source = "../cron"
+
+  for_each = var.classes
+
+  name           = "drivers-downloader-job-${each.value.id}"
+  short_name     = "dd-job-${each.value.id}"
+  region         = var.region
+  project        = var.project
+  project_number = var.project_number
+  schedule       = each.value.cron
+  job_name       = module.drivers_jobs[each.key].job.name
 }

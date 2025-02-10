@@ -29,7 +29,3 @@ variable "short_name" {
 variable "image" {
   type = string
 }
-
-variable "schedule" {
-  type = string
-}
