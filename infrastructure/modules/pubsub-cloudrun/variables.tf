@@ -46,11 +46,3 @@ variable "timeout" {
   type    = string
   default = "600s"
 }
-
-variable "cron" {
-  type = list(object({
-    schedule = string
-    data     = string
-  }))
-  default = []
-}

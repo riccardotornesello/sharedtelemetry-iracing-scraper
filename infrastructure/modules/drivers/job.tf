@@ -1,5 +1,5 @@
 module "drivers_jobs" {
-  source = "../../modules/cron-cloudrun"
+  source = "../cron-cloudrun"
 
   for_each = tomap({
     sports_car = {

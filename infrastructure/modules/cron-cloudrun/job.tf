@@ -1,6 +1,4 @@
 resource "google_cloud_run_v2_job" "default" {
-  depends_on = [google_project_iam_member.runner]
-
   name     = var.name
   location = var.region
 
@@ -79,4 +77,8 @@ resource "google_cloud_scheduler_job" "job" {
   }
 
   depends_on = [google_cloud_run_v2_job.default, google_cloud_run_v2_job_iam_binding.invoker]
+}
+
+output "runner" {
+  value = google_service_account.runner
 }

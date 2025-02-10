@@ -27,6 +27,8 @@ module "events" {
   db_instance_name   = google_sql_database_instance.sharedtelemetry.name
   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
   region             = var.region
+  project            = var.project
+  project_number     = var.project_number
 }
 
 module "qualify_results" {

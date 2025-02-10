@@ -40,13 +40,15 @@ module "season_parser_function" {
 }
 
 module "leagues_parser_function" {
-  source = "../pubsub-cloudrun"
+  source = "../cron-cloudrun"
 
-  name       = "leagues-parser"
-  short_name = "lp"
-  location   = var.region
-  project    = "sharedtelemetryapp"
-  image      = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+  name           = "leagues-parser-job"
+  short_name     = "lp-job"
+  region         = var.region
+  project        = var.project
+  project_number = var.project_number
+  schedule       = "0 * * * *"
+
   env = {
     IRACING_EMAIL : var.iracing_email,
     IRACING_PASSWORD : var.iracing_password,
@@ -57,10 +59,14 @@ module "leagues_parser_function" {
     PUBSUB_PROJECT : "sharedtelemetryapp",
     PUBSUB_TOPIC : module.season_parser_function.pubsub_topic.name
   }
+
+  image = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
+
   db_connection_name = var.db_connection_name
-  pubsub_client      = true
-  cron = [{
-    schedule = "0 * * * *"
-    data     = "ok"
-  }]
+}
+
+resource "google_project_iam_member" "runner" {
+  project = var.project
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${module.leagues_parser_function.runner.email}"
 }
