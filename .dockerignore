@@ -1,6 +1,5 @@
 .git/
 **/*.env
-**/*.sql
 **/*.csv
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,node,yarn,svelte
@@ -462,7 +461,6 @@ packages/libs/cloudrun_utils/**/go.work
 # From packages/libs/drivers_models/.gitignore
 packages/libs/drivers_models/**/.env
 packages/libs/drivers_models/**/*.json
-packages/libs/drivers_models/**/*.sql
 
 # Created by https://www.toptal.com/developers/gitignore/api/go
 # Edit at https://www.toptal.com/developers/gitignore?templates=go
@@ -494,7 +492,6 @@ packages/libs/drivers_models/**/go.work
 # From packages/libs/events_models/.gitignore
 packages/libs/events_models/**/.env
 packages/libs/events_models/**/*.json
-packages/libs/events_models/**/*.sql
 
 # Created by https://www.toptal.com/developers/gitignore/api/go
 # Edit at https://www.toptal.com/developers/gitignore?templates=go

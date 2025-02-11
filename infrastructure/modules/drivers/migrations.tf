@@ -16,7 +16,7 @@ module "drivers_migration" {
 
   run_after_deploy = true
   image            = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-models:latest"
-  args             = ["migrate", "apply", "--url", "postgres://${google_sql_user.drivers_downloader.name}:${google_sql_user.drivers_downloader.password}@/cloudsql/${var.db_connection_name}/${google_sql_database.database.name}"]
+  args             = ["migrate", "apply", "--url", "postgres://${google_sql_user.drivers_downloader.name}:${google_sql_user.drivers_downloader.password}@/${google_sql_database.database.name}?host=/cloudsql/${var.db_connection_name}"]
 
   db_connection_name = var.db_connection_name
 }
