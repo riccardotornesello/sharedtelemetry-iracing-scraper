@@ -2,6 +2,7 @@ package logic
 
 import (
 	"io"
+	"log"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,15 +15,18 @@ func UpdateDriverStatsByCategory(db *gorm.DB, irClient *irapi.IRacingApiClient, 
 	now := time.Now()
 
 	// Get the stats CSV
+	log.Println("Fetching drivers stats for car class", carClass)
 	driversCsv, err := NewDriversCsv(irClient, carClass)
 	if err != nil {
 		return err
 	}
+	log.Println("Drivers stats fetched")
 
 	// Insert the users in groups of size batchSize
 	isEof := false
 
 	for !isEof {
+		log.Println("Processing batch")
 		drivers := make([]*drivers_models.Driver, batchSize)
 		driverStats := make([]*drivers_models.DriverStats, batchSize)
 		n := 0

@@ -1,6 +1,7 @@
 package irapi
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -42,8 +43,7 @@ func NewIRacingApiClient(email string, password string) (*IRacingApiClient, erro
 	}
 
 	client := &http.Client{
-		Jar:     jar,
-		Timeout: 60 * time.Second, // TODO: make this configurable
+		Jar: jar,
 	}
 
 	tokenIn := []byte(password + strings.ToLower(email))
@@ -84,7 +84,15 @@ func (c *IRacingApiClient) get(path string) (io.ReadCloser, error) {
 			time.Sleep(time.Until(c.retryAfter))
 		}
 
-		resp, err = c.client.Get("https://members-ng.iracing.com" + path)
+		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // TODO: allow timeout customization
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://members-ng.iracing.com"+path, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error creating request for %s: %w", path, err)
+		}
+
+		resp, err = c.client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("error getting %s: %w", path, err)
 		}

@@ -11,7 +11,7 @@ import (
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
-const BATCH_SIZE = 100
+const BATCH_SIZE = 500
 
 func main() {
 	// Get configuration
@@ -29,24 +29,26 @@ func main() {
 	carClass := os.Getenv("CAR_CLASS")
 
 	// Initialize database
+	log.Println("Connecting to database")
 	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, drivers_models.AllModels, 20, 2)
 	if err != nil {
 		log.Fatalf("database.Connect: %v", err)
 	}
+	log.Println("Connected to database")
 
 	// Initialize iRacing client
+	log.Println("Initializing iRacing client")
 	irClient, err := irapi.NewIRacingApiClient(iRacingEmail, iRacingPassword)
 	if err != nil {
 		log.Fatalf("irapi.NewIRacingApiClient: %v", err)
 	}
+	log.Println("iRacing client initialized")
 
 	// Start the job
 	log.Println("Starting job for car class", carClass)
-
 	err = logic.UpdateDriverStatsByCategory(db, irClient, carClass, BATCH_SIZE)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	log.Println("Job completed")
 }
