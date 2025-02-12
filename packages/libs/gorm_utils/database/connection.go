@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func Connect(user string, pass string, host string, port string, name string, models []interface{}, maxOpenConns int, maxIdleConns int) (*gorm.DB, error) {
+func Connect(user string, pass string, host string, port string, name string, maxOpenConns int, maxIdleConns int) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, user, pass, name)
 	if port != "" {
 		dsn = fmt.Sprintf("%s port=%s", dsn, port)
@@ -27,16 +27,6 @@ func Connect(user string, pass string, host string, port string, name string, mo
 
 	sqlDB.SetMaxOpenConns(maxOpenConns)
 	sqlDB.SetMaxIdleConns(maxIdleConns)
-
-	// Migrate the schema
-	// TODO: do not migrate the schema in production
-	if models != nil && len(models) > 0 {
-		if err = db.AutoMigrate(
-			models...,
-		); err != nil {
-			return nil, err
-		}
-	}
 
 	return db, nil
 }

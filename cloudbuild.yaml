@@ -129,6 +129,16 @@ steps:
       ]
     waitFor: ["-"]
 
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/events-models:latest",
+        "--file=docker/Dockerfile.events-models",
+        ".",
+      ]
+    waitFor: ["-"]
+
 images:
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
@@ -137,3 +147,4 @@ images:
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-models:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/events-models:latest"

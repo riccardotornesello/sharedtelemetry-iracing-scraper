@@ -1,0 +1,4 @@
+FROM arigaio/atlas:latest
+
+COPY ./packages/libs/events_models/migrations /migrations
+COPY ./packages/libs/events_models/atlas.hcl .

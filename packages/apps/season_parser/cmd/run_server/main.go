@@ -10,7 +10,6 @@ import (
 
 	"gorm.io/gorm"
 	"riccardotornesello.it/sharedtelemetry/iracing/cloudrun_utils/handlers"
-	"riccardotornesello.it/sharedtelemetry/iracing/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 	"riccardotornesello.it/sharedtelemetry/iracing/season_parser/logic"
@@ -33,7 +32,7 @@ func main() {
 	iRacingPassword := os.Getenv("IRACING_PASSWORD")
 
 	// Initialize database
-	db, err = database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, events_models.AllModels, 2, 2)
+	db, err = database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 2, 2)
 	if err != nil {
 		log.Fatalf("database.Connect: %v", err)
 	}

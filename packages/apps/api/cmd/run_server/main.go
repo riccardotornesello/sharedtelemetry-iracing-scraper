@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 )
 
@@ -72,7 +71,7 @@ func main() {
 	dbHost := os.Getenv("DB_HOST")
 
 	// Initialize database
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, events_models.AllModels, 1, 1)
+	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 1, 1)
 	if err != nil {
 		log.Fatal(err)
 	}

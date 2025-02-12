@@ -7,7 +7,6 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/joho/godotenv"
-	"riccardotornesello.it/sharedtelemetry/iracing/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/leagues_parser/logic"
 )
@@ -26,7 +25,7 @@ func main() {
 	pubSubTopicId := os.Getenv("PUBSUB_TOPIC")
 
 	// Initialize database
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, events_models.AllModels, 1, 0)
+	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 1, 0)
 	if err != nil {
 		log.Fatalf("database.Connect: %v", err)
 		return

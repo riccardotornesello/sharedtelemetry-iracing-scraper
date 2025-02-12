@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"riccardotornesello.it/sharedtelemetry/iracing/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
@@ -31,7 +30,7 @@ func TestParseSession(t *testing.T) {
 		t.Fatalf("irapi.NewIRacingApiClient: %v", err)
 	}
 
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, events_models.AllModels, 20, 2)
+	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 20, 2)
 	if err != nil {
 		log.Fatalf("database.Connect: %v", err)
 	}

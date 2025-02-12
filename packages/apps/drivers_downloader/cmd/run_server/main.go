@@ -6,7 +6,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/drivers_downloader/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/drivers_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
@@ -30,7 +29,7 @@ func main() {
 
 	// Initialize database
 	log.Println("Connecting to database")
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, drivers_models.AllModels, 20, 2)
+	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 20, 2)
 	if err != nil {
 		log.Fatalf("database.Connect: %v", err)
 	}
