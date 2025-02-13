@@ -13,11 +13,17 @@ import (
 )
 
 func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB, workers int) error {
-	// Skip if the session is already in the database
-	var count int64
-	db.Model(&events_models.Session{}).Where("subsession_id = ?", subsessionId).Count(&count)
-	if count > 0 {
-		slog.Info(fmt.Sprintf("Session %v already parsed", subsessionId))
+	// Check the info already in the database
+	var dbSession events_models.Session
+	err := db.Where("subsession_id = ?", subsessionId).First(&dbSession).Error
+	if err != nil {
+		return err
+	}
+
+	// If the session is already parsed, return
+	// TODO: check by parse date
+	if dbSession.TrackID != 0 {
+		slog.Info("Session %d already parsed", subsessionId)
 		return nil
 	}
 
@@ -97,14 +103,20 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		}
 	}()
 
-	// Store the session in the database
-	if err = tx.Create(&events_models.Session{
-		SubsessionID: subsessionId,
-		LeagueID:     results.LeagueId,
-		SeasonID:     results.SeasonId,
-		LaunchAt:     subsessionLaunchAt,
-		TrackID:      results.Track.TrackId,
-	}).Error; err != nil {
+	// Update the session in the database.
+	// If the session is already parsed, return an error.
+	// TODO: check if the session is already parsed by the launch date.
+	result := tx.Model(&events_models.Session{}).Where("subsession_id = ? AND track_id = 0", subsessionId).Updates(events_models.Session{
+		LeagueID: results.LeagueId,
+		SeasonID: results.SeasonId,
+		LaunchAt: subsessionLaunchAt,
+		TrackID:  results.Track.TrackId,
+	})
+	if result.RowsAffected == 0 {
+		tx.Rollback()
+		return fmt.Errorf("session %d already parsed", subsessionId)
+	}
+	if result.Error != nil {
 		tx.Rollback()
 		return err
 	}

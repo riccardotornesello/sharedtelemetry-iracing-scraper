@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/pubsub"
 	"gorm.io/gorm"
 	"riccardotornesello.it/sharedtelemetry/iracing/cloudrun_utils/handlers"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
@@ -17,6 +19,8 @@ import (
 
 var db *gorm.DB
 var irClient *irapi.IRacingApiClient
+var pubSubTopic *pubsub.Topic
+var pubSubCtx context.Context
 
 func main() {
 	var err error
@@ -31,6 +35,9 @@ func main() {
 	iRacingEmail := os.Getenv("IRACING_EMAIL")
 	iRacingPassword := os.Getenv("IRACING_PASSWORD")
 
+	pubSubProjectId := os.Getenv("PUBSUB_PROJECT")
+	pubSubTopicId := os.Getenv("PUBSUB_TOPIC")
+
 	// Initialize database
 	db, err = database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 2, 2)
 	if err != nil {
@@ -42,6 +49,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("irapi.NewIRacingApiClient: %v", err)
 	}
+
+	// Initialize Pub/Sub client
+	pubSubCtx = context.Background()
+	client, err := pubsub.NewClient(pubSubCtx, pubSubProjectId)
+	if err != nil {
+		log.Fatalf("pubsub.NewClient: %v", err)
+	}
+	defer client.Close()
+
+	pubSubTopic = client.Topic(pubSubTopicId)
 
 	// Start the HTTP server
 	http.HandleFunc("/", PubSubHandler)
@@ -96,19 +113,31 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: initialize before the handler
-	projectId := os.Getenv("PUBSUB_PROJECT")
-	topicId := os.Getenv("PUBSUB_TOPIC")
-
-	sessionIds, err := logic.GetMissingSessionIds(seasonData.LeagueId, seasonData.SeasonId, irClient, db)
+	sessionInfo, err := logic.GetMissingSessionInfo(seasonData.LeagueId, seasonData.SeasonId, irClient, db)
 	if err != nil {
-		handlers.ReturnException(w, err, "logic.GetMissingSessionIds")
+		handlers.ReturnException(w, err, "logic.GetMissingSessionInfo")
 		return
 	}
 
-	err = logic.SendSessionsToParse(projectId, topicId, sessionIds)
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err = logic.StoreMissingSessions(sessionInfo, tx)
+
+	err = logic.SendSessionsToParse(pubSubTopic, pubSubCtx, sessionInfo)
 	if err != nil {
+		tx.Rollback()
 		handlers.ReturnException(w, err, "logic.SendSessionsToParse")
+		return
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		handlers.ReturnException(w, err, "tx.Commit")
 		return
 	}
 

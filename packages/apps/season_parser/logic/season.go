@@ -9,6 +9,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"riccardotornesello.it/sharedtelemetry/iracing/events_models"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
@@ -18,7 +19,7 @@ type SessionInfo struct {
 	LaunchAt     string
 }
 
-func GetMissingSessionIds(leagueId int, seasonId int, irClient *irapi.IRacingApiClient, db *gorm.DB) ([]SessionInfo, error) {
+func GetMissingSessionInfo(leagueId int, seasonId int, irClient *irapi.IRacingApiClient, db *gorm.DB) ([]SessionInfo, error) {
 	// Extract the sessions list (only the completed ones) for the specified series and league
 	sessions, err := irClient.GetLeagueSeasonSessions(leagueId, seasonId, true)
 	if err != nil {
@@ -52,32 +53,23 @@ func GetMissingSessionIds(leagueId int, seasonId int, irClient *irapi.IRacingApi
 	return missingSessions, nil
 }
 
-func SendSessionsToParse(projectId string, topicId string, sessions []SessionInfo) error {
+func SendSessionsToParse(pubSubTopic *pubsub.Topic, pubSubCtx context.Context, sessions []SessionInfo) error {
 	if sessions == nil || len(sessions) == 0 {
 		return nil
 	}
 
-	// Send pub/sub messages to parse the sessions
-	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectId)
-	if err != nil {
-		return fmt.Errorf("pubsub.NewClient: %w", err)
-	}
-	defer client.Close()
-
 	var wg sync.WaitGroup
 	var totalErrors uint64
-	t := client.Topic(topicId)
 
 	for _, session := range sessions {
-		result := t.Publish(ctx, &pubsub.Message{
+		result := pubSubTopic.Publish(pubSubCtx, &pubsub.Message{
 			Data: []byte("{\"subsessionId\":" + strconv.Itoa(int(session.SubsessionId)) + ",\"launchAt\":\"" + session.LaunchAt + "\"}"),
 		})
 
 		wg.Add(1)
 		go func(res *pubsub.PublishResult) {
 			defer wg.Done()
-			_, err := res.Get(ctx)
+			_, err := res.Get(pubSubCtx)
 			if err != nil {
 				atomic.AddUint64(&totalErrors, 1)
 				return
@@ -92,4 +84,26 @@ func SendSessionsToParse(projectId string, topicId string, sessions []SessionInf
 	}
 
 	return nil
+}
+
+func StoreMissingSessions(sessions []SessionInfo, db *gorm.DB) error {
+	if sessions == nil || len(sessions) == 0 {
+		return nil
+	}
+
+	dbSessions := make([]events_models.Session, len(sessions))
+
+	for i, session := range sessions {
+		dbSessions[i] = events_models.Session{
+			SubsessionID: session.SubsessionId,
+		}
+	}
+
+	// Create and ignore duplicates on SubsessionID
+	err := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "subsession_id"}},
+		DoNothing: true,
+	}).Create(dbSessions).Error
+
+	return err
 }
