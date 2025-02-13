@@ -26,3 +26,6 @@ vite.config.ts.timestamp-*
 src/lib/paraglide
 
 *storybook.log
+
+# Sentry Config File
+.env.sentry-build-plugin

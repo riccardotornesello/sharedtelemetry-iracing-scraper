@@ -360,6 +360,9 @@ packages/apps/qualify_results/**/src/lib/paraglide
 
 packages/apps/qualify_results/**/*storybook.log
 
+# Sentry Config File
+packages/apps/qualify_results/**/.env.sentry-build-plugin
+
 # From packages/apps/qualify_results/project.inlang/.gitignore
 packages/apps/qualify_results/project.inlang/**/cache
 # From packages/apps/season_parser/.gitignore
