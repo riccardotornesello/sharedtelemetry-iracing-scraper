@@ -27,15 +27,17 @@ type Rank struct {
 }
 
 type TeamInfo struct {
-	Id   uint   `json:"id"`
-	Name string `json:"name"`
+	Id      uint   `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }
 
 type CrewInfo struct {
-	Id    uint     `json:"id"`
-	Name  string   `json:"name"`
-	CarId int      `json:"carId"`
-	Team  TeamInfo `json:"team"`
+	Id              uint     `json:"id"`
+	Name            string   `json:"name"`
+	CarId           int      `json:"carId"`
+	Team            TeamInfo `json:"team"`
+	CarBrandPicture string   `json:"carBrandPicture"`
 }
 
 type DriverInfo struct {
@@ -277,12 +279,14 @@ func main() {
 				CustId: driver.IRacingCustId,
 				Name:   driver.Name,
 				Crew: CrewInfo{
-					Id:    driver.Crew.ID,
-					Name:  driver.Crew.Name,
-					CarId: driver.Crew.IRacingCarId,
+					Id:              driver.Crew.ID,
+					Name:            driver.Crew.Name,
+					CarId:           driver.Crew.IRacingCarId,
+					CarBrandPicture: driver.Crew.CarBrandPicture,
 					Team: TeamInfo{
-						Id:   driver.Crew.Team.ID,
-						Name: driver.Crew.Team.Name,
+						Id:      driver.Crew.Team.ID,
+						Name:    driver.Crew.Team.Name,
+						Picture: driver.Crew.Team.Picture,
 					},
 				},
 			}

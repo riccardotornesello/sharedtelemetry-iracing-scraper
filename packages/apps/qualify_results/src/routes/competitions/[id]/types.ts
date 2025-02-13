@@ -1,4 +1,5 @@
 // TODO: move types and components to lib
+// TODO: check types
 
 export type Crew = {
 	id: number;

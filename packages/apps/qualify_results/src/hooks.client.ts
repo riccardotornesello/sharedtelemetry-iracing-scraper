@@ -7,6 +7,7 @@ Sentry.init({
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
   integrations: [replayIntegration()],
+  release: "demo",
 });
 
 export const handleError = handleErrorWithSentry();

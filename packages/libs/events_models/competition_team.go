@@ -16,5 +16,6 @@ type CompetitionTeam struct {
 	CompetitionID uint        `gorm:"not null"`
 	Competition   Competition `gorm:"foreignKey:CompetitionID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	Name string `gorm:"not null"`
+	Name    string `gorm:"not null"`
+	Picture string
 }

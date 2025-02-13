@@ -8,7 +8,8 @@ export default defineConfig({
 		sentrySvelteKit({
 			sourceMapsUploadOptions: {
 				org: 'sharedtelemetry',
-				project: 'qualify-results'
+				project: 'qualify-results',
+				release: { inject: false }
 			}
 		}),
 		sveltekit(),

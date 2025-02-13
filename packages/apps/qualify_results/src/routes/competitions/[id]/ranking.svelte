@@ -1,6 +1,7 @@
 <script lang="ts">
+	import CellWithPicture from '../../../components/cell-with-picture.svelte';
 	import TimeCard from '../../../components/time-card.svelte';
-	import type { Crew, DriverRanking } from './types';
+	import type { DriverRanking } from './types';
 
 	let {
 		ranking,
@@ -18,8 +19,16 @@
 {#each ranking as rank}
 	<tr class="border-b border-gray-700 bg-gray-800">
 		<td class="px-6 py-4 text-center">P{rank.pos}</td>
-		<td class="px-6 py-4">{drivers[rank.custId]?.name || rank.custId}</td>
-		<td class="px-6 py-4">{drivers[rank.custId]?.crew.team.name}</td>
+		<td class="px-6 py-4">
+			<CellWithPicture picture={drivers[rank.custId]?.crew.carBrandPicture}>
+				{drivers[rank.custId]?.name || rank.custId}
+			</CellWithPicture>
+		</td>
+		<td class="px-6 py-4">
+			<CellWithPicture picture={drivers[rank.custId]?.crew.team.picture}>
+				{drivers[rank.custId]?.crew.team.name}
+			</CellWithPicture>
+		</td>
 		<td class="px-2 py-2">
 			<TimeCard time={rank.sum} />
 		</td>
