@@ -16,6 +16,7 @@ type CompetitionDriver struct {
 	CrewID uint            `gorm:"not null"`
 	Crew   CompetitionCrew `gorm:"foreignKey:CrewID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	Name          string `gorm:"not null"`
 	IRacingCustId int    `gorm:"not null"`
+	FirstName     string `gorm:"not null"`
+	LastName      string
 }

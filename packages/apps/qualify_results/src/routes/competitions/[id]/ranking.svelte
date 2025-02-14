@@ -21,7 +21,9 @@
 		<td class="px-6 py-4 text-center">P{rank.pos}</td>
 		<td class="px-6 py-4">
 			<CellWithPicture picture={drivers[rank.custId]?.crew.carBrandIcon}>
-				{drivers[rank.custId]?.name || rank.custId}
+				{drivers[rank.custId]
+					? `${drivers[rank.custId].firstName} ${drivers[rank.custId].lastName}`
+					: rank.custId}
 			</CellWithPicture>
 		</td>
 		<td class="px-6 py-4">

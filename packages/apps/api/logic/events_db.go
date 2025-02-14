@@ -70,7 +70,7 @@ func GetCompetitionDrivers(db *gorm.DB, competitionId uint) ([]*events_models.Co
 		Joins("Crew").
 		Joins("Crew.Team").
 		Where("\"Crew__Team\".competition_id = ?", competitionId).
-		Order("name").
+		Order("last_name, first_name").
 		Find(&competitionDrivers).
 		Error
 	if err != nil {

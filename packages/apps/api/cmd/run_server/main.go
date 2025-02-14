@@ -49,9 +49,10 @@ type CrewInfo struct {
 }
 
 type DriverInfo struct {
-	CustId int      `json:"custId"`
-	Name   string   `json:"name"`
-	Crew   CrewInfo `json:"crew"`
+	CustId    int      `json:"custId"`
+	FirstName string   `json:"firstName"`
+	LastName  string   `json:"lastName"`
+	Crew      CrewInfo `json:"crew"`
 }
 
 type EventGroupInfo struct {
@@ -341,8 +342,9 @@ func main() {
 			}
 
 			driverInfo := &DriverInfo{
-				CustId: driver.IRacingCustId,
-				Name:   driver.Name,
+				CustId:    driver.IRacingCustId,
+				FirstName: driver.FirstName,
+				LastName:  driver.LastName,
 				Crew: CrewInfo{
 					Id:           driver.Crew.ID,
 					Name:         driver.Crew.Name,
