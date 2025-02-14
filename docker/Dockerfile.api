@@ -1,9 +1,10 @@
-FROM golang:1.23-bookworm as builder
+FROM golang:1.23-bookworm AS builder
 
 WORKDIR /packages/apps/app
 
 # Install dependencies
 COPY ./packages/apps/api/go.* /packages/apps/app/
+COPY ./packages/libs/cars_models/go.* /packages/libs/cars_models/
 COPY ./packages/libs/events_models/go.* /packages/libs/events_models/
 COPY ./packages/libs/gorm_utils/go.* /packages/libs/gorm_utils/
 
@@ -11,6 +12,7 @@ RUN go mod download
 
 # Build
 COPY ./packages/apps/api /packages/apps/app
+COPY ./packages/libs/cars_models /packages/libs/cars_models
 COPY ./packages/libs/events_models /packages/libs/events_models
 COPY ./packages/libs/gorm_utils /packages/libs/gorm_utils
 

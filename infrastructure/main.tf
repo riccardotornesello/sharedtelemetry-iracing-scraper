@@ -62,10 +62,15 @@ module "api" {
   source = "./modules/api"
   domain = "api.${var.domain}"
 
-  db_user            = module.events.db_user.name
-  db_password        = var.db_password
-  db_name            = module.events.db.name
   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
+
+  events_db_user     = module.events.db_user.name
+  events_db_password = var.db_password
+  events_db_name     = module.events.db.name
+
+  cars_db_user     = module.cars.db_user.name
+  cars_db_password = var.db_password
+  cars_db_name     = module.cars.db.name
 
   region = var.region
 }

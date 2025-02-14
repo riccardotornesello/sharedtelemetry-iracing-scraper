@@ -16,7 +16,6 @@ type CompetitionCrew struct {
 	TeamID uint            `gorm:"not null"`
 	Team   CompetitionTeam `gorm:"foreignKey:TeamID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
-	Name            string `gorm:"not null"`
-	IRacingCarId    int    `gorm:"not null"`
-	CarBrandPicture string // TODO: move to car brand model
+	Name         string `gorm:"not null"`
+	IRacingCarId int    `gorm:"not null"`
 }

@@ -40,11 +40,12 @@ type TeamInfo struct {
 }
 
 type CrewInfo struct {
-	Id              uint     `json:"id"`
-	Name            string   `json:"name"`
-	CarId           int      `json:"carId"`
-	Team            TeamInfo `json:"team"`
-	CarBrandPicture string   `json:"carBrandPicture"`
+	Id           uint     `json:"id"`
+	Name         string   `json:"name"`
+	CarId        int      `json:"carId"`
+	Team         TeamInfo `json:"team"`
+	CarModel     string   `json:"carModel"`
+	CarBrandIcon string   `json:"carBrandIcon"`
 }
 
 type DriverInfo struct {
@@ -73,14 +74,25 @@ func main() {
 		log.Println("Error loading .env file")
 	}
 
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
-	dbName := os.Getenv("DB_NAME")
-	dbPort := os.Getenv("DB_PORT")
-	dbHost := os.Getenv("DB_HOST")
+	eventsDbUser := os.Getenv("EVENTS_DB_USER")
+	eventsDbPass := os.Getenv("EVENTS_DB_PASS")
+	eventsDbName := os.Getenv("EVENTS_DB_NAME")
+	eventsDbPort := os.Getenv("EVENTS_DB_PORT")
+	eventsDbHost := os.Getenv("EVENTS_DB_HOST")
+
+	carsDbUser := os.Getenv("CARS_DB_USER")
+	carsDbPass := os.Getenv("CARS_DB_PASS")
+	carsDbName := os.Getenv("CARS_DB_NAME")
+	carsDbPort := os.Getenv("CARS_DB_PORT")
+	carsDbHost := os.Getenv("CARS_DB_HOST")
 
 	// Initialize database
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 1, 1)
+	eventsDb, err := database.Connect(eventsDbUser, eventsDbPass, eventsDbHost, eventsDbPort, eventsDbName, 1, 1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	carsDb, err := database.Connect(carsDbUser, carsDbPass, carsDbHost, carsDbPort, carsDbName, 1, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -102,32 +114,34 @@ func main() {
 		}
 
 		// Get the competition
-		competition, err := logic.GetCompetitionBySlug(db, c.Param("id"))
+		competition, err := logic.GetCompetitionBySlug(eventsDb, c.Param("id"))
 
 		// Get the sessions valid for the competition
-		sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competition.ID)
+		sessions, sessionsMap, err := logic.GetCompetitionSessions(eventsDb, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition sessions"})
 			return
 		}
 
 		// Get event groups
-		eventGroups, err := logic.GetEventGroups(db, competition.ID)
+		eventGroups, err := logic.GetEventGroups(eventsDb, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting event groups"})
 			return
 		}
 
 		// Get drivers
-		drivers, _, err := logic.GetCompetitionDrivers(db, competition.ID)
+		drivers, _, err := logic.GetCompetitionDrivers(eventsDb, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition drivers"})
 			return
 		}
 
 		driverCars := make(map[int]int)
+		allowedCars := make(map[int]bool)
 		for _, driver := range drivers {
 			driverCars[driver.IRacingCustId] = driver.Crew.IRacingCarId
+			allowedCars[driver.Crew.IRacingCarId] = true
 		}
 
 		// Get laps
@@ -136,9 +150,27 @@ func main() {
 			simsessionIds = append(simsessionIds, []int{session.SubsessionId, session.SimsessionNumber})
 		}
 
-		laps, err := logic.GetLaps(db, simsessionIds)
+		laps, err := logic.GetLaps(eventsDb, simsessionIds)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting laps"})
+			return
+		}
+
+		// Get cars
+		allwedCarIds := make([]int, 0)
+		for carId := range allowedCars {
+			allwedCarIds = append(allwedCarIds, carId)
+		}
+
+		carBrands, err := logic.GetCarBrands(carsDb)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting car brands"})
+			return
+		}
+
+		carModels, err := logic.GetCarModelsById(carsDb, allwedCarIds)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting car models"})
 			return
 		}
 
@@ -295,14 +327,28 @@ func main() {
 		// Return the response
 		driversInfo := make(map[int]*DriverInfo)
 		for _, driver := range drivers {
+			carModel := ""
+			carBrandIcon := ""
+
+			car, ok := carModels[driver.Crew.IRacingCarId]
+			if ok {
+				carModel = car.Name
+
+				brand, ok := carBrands[car.Brand]
+				if ok {
+					carBrandIcon = brand.Icon
+				}
+			}
+
 			driverInfo := &DriverInfo{
 				CustId: driver.IRacingCustId,
 				Name:   driver.Name,
 				Crew: CrewInfo{
-					Id:              driver.Crew.ID,
-					Name:            driver.Crew.Name,
-					CarId:           driver.Crew.IRacingCarId,
-					CarBrandPicture: driver.Crew.CarBrandPicture,
+					Id:           driver.Crew.ID,
+					Name:         driver.Crew.Name,
+					CarId:        driver.Crew.IRacingCarId,
+					CarModel:     carModel,
+					CarBrandIcon: carBrandIcon,
 					Team: TeamInfo{
 						Id:      driver.Crew.Team.ID,
 						Name:    driver.Crew.Team.Name,
@@ -358,17 +404,17 @@ func main() {
 
 	r.GET("/competitions/:id/csv", func(c *gin.Context) {
 		// Get the competition
-		competition, err := logic.GetCompetitionBySlug(db, c.Param("id"))
+		competition, err := logic.GetCompetitionBySlug(eventsDb, c.Param("id"))
 
 		// Get the sessions valid for the competition
-		sessions, sessionsMap, err := logic.GetCompetitionSessions(db, competition.ID)
+		sessions, sessionsMap, err := logic.GetCompetitionSessions(eventsDb, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition sessions"})
 			return
 		}
 
 		// Get drivers
-		drivers, _, err := logic.GetCompetitionDrivers(db, competition.ID)
+		drivers, _, err := logic.GetCompetitionDrivers(eventsDb, competition.ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition drivers"})
 			return
@@ -385,7 +431,7 @@ func main() {
 			simsessionIds = append(simsessionIds, []int{session.SubsessionId, session.SimsessionNumber})
 		}
 
-		laps, err := logic.GetLaps(db, simsessionIds)
+		laps, err := logic.GetLaps(eventsDb, simsessionIds)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting laps"})
 			return

@@ -1,34 +1,34 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    id: "cars-downloader-pull"
+    id: "drivers-downloader-pull"
     entrypoint: "bash"
     args:
       [
         "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/cars-downloader:latest || exit 0",
+        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest || exit 0",
       ]
     waitFor: ["-"]
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/cars-downloader:latest",
-        "--file=docker/Dockerfile.cars-downloader",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/cars-downloader:latest",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
+        "--file=docker/Dockerfile.drivers-downloader",
+        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
         ".",
       ]
-    waitFor: ["cars-downloader-pull"]
+    waitFor: ["drivers-downloader-pull"]
 
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/cars-models:latest",
-        "--file=docker/Dockerfile.cars-models",
+        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-models:latest",
+        "--file=docker/Dockerfile.drivers-models",
         ".",
       ]
     waitFor: ["-"]
 
 images:
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/cars-downloader:latest"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/cars-models:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
+  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-models:latest"

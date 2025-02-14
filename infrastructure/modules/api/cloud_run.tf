@@ -26,19 +26,35 @@ resource "google_cloud_run_v2_service" "api" {
       }
 
       env {
-        name  = "DB_USER"
-        value = var.db_user
+        name  = "EVENTS_DB_USER"
+        value = var.events_db_user
       }
       env {
-        name  = "DB_PASS"
-        value = var.db_password
+        name  = "EVENTS_DB_PASS"
+        value = var.events_db_password
       }
       env {
-        name  = "DB_NAME"
-        value = var.db_name
+        name  = "EVENTS_DB_NAME"
+        value = var.events_db_name
       }
       env {
-        name  = "DB_HOST"
+        name  = "EVENTS_DB_HOST"
+        value = "/cloudsql/${var.db_connection_name}"
+      }
+      env {
+        name  = "CARS_DB_USER"
+        value = var.cars_db_user
+      }
+      env {
+        name  = "CARS_DB_PASS"
+        value = var.cars_db_password
+      }
+      env {
+        name  = "CARS_DB_NAME"
+        value = var.cars_db_name
+      }
+      env {
+        name  = "CARS_DB_HOST"
         value = "/cloudsql/${var.db_connection_name}"
       }
     }

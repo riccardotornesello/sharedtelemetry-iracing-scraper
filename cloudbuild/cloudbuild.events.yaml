@@ -20,26 +20,6 @@ steps:
     waitFor: ["api-pull"]
 
   - name: "gcr.io/cloud-builders/docker"
-    id: "drivers-downloader-pull"
-    entrypoint: "bash"
-    args:
-      [
-        "-c",
-        "docker pull europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest || exit 0",
-      ]
-    waitFor: ["-"]
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
-        "--file=docker/Dockerfile.drivers-downloader",
-        "--cache-from=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest",
-        ".",
-      ]
-    waitFor: ["drivers-downloader-pull"]
-
-  - name: "gcr.io/cloud-builders/docker"
     id: "leagues-parser-pull"
     entrypoint: "bash"
     args:
@@ -123,16 +103,6 @@ steps:
     args:
       [
         "build",
-        "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-models:latest",
-        "--file=docker/Dockerfile.drivers-models",
-        ".",
-      ]
-    waitFor: ["-"]
-
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
         "--tag=europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/events-models:latest",
         "--file=docker/Dockerfile.events-models",
         ".",
@@ -141,10 +111,8 @@ steps:
 
 images:
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/api:latest"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-downloader:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/leagues-parser:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/season-parser:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/sessions-downloader:latest"
-  - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/drivers-models:latest"
   - "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/events-models:latest"

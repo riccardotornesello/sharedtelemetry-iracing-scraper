@@ -20,7 +20,7 @@
 	<tr class="border-b border-gray-700 bg-gray-800">
 		<td class="px-6 py-4 text-center">P{rank.pos}</td>
 		<td class="px-6 py-4">
-			<CellWithPicture picture={drivers[rank.custId]?.crew.carBrandPicture}>
+			<CellWithPicture picture={drivers[rank.custId]?.crew.carBrandIcon}>
 				{drivers[rank.custId]?.name || rank.custId}
 			</CellWithPicture>
 		</td>

@@ -2,13 +2,23 @@ variable "db_connection_name" {
   type = string
 }
 
-variable "db_user" {
+variable "events_db_user" {
   type = string
 }
-variable "db_password" {
+variable "events_db_password" {
   type = string
 }
-variable "db_name" {
+variable "events_db_name" {
+  type = string
+}
+
+variable "cars_db_user" {
+  type = string
+}
+variable "cars_db_password" {
+  type = string
+}
+variable "cars_db_name" {
   type = string
 }
 
