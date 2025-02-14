@@ -1,16 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"sort"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 )
+
+type CacheHit struct {
+	data       []byte
+	validUntil time.Time
+}
 
 type RankingResponse struct {
 	Ranking     []*Rank             `json:"ranking"`
@@ -80,7 +87,19 @@ func main() {
 
 	r := gin.Default()
 
+	// Initialize cache
+	cache := make(map[string]CacheHit)
+
+	// Handlers
 	r.GET("/competitions/:id/ranking", func(c *gin.Context) {
+		// Check if the response is in the cache
+		if cacheHit, ok := cache[c.Request.RequestURI]; ok {
+			if cacheHit.validUntil.After(time.Now()) {
+				c.Data(http.StatusOK, "application/json", cacheHit.data)
+				return
+			}
+		}
+
 		// Get the competition
 		competition, err := logic.GetCompetitionBySlug(db, c.Param("id"))
 
@@ -319,7 +338,21 @@ func main() {
 			Competition: competitionInfo,
 		}
 
-		c.JSON(http.StatusOK, response)
+		// Marshal the response
+		jsonString, err := json.Marshal(response)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error marshalling response"})
+			return
+		}
+
+		// Store the response in the cache
+		cache[c.Request.RequestURI] = CacheHit{
+			data:       jsonString,
+			validUntil: time.Now().Add(5 * time.Minute),
+		}
+
+		// Return the response
+		c.Data(http.StatusOK, "application/json", jsonString)
 	})
 
 	r.GET("/competitions/:id/csv", func(c *gin.Context) {
