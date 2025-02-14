@@ -88,6 +88,7 @@ func main() {
 	r := gin.Default()
 
 	// Initialize cache
+	// TODO: use better caching system
 	cache := make(map[string]CacheHit)
 
 	// Handlers

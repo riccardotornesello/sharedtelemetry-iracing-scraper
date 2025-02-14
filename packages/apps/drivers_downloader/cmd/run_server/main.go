@@ -13,6 +13,8 @@ import (
 const BATCH_SIZE = 500
 
 func main() {
+	// TODO: prevent deadlock when the job is running
+
 	// Get configuration
 	godotenv.Load()
 
