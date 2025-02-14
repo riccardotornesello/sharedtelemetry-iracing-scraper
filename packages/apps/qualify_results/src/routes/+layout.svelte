@@ -7,6 +7,10 @@
 	let { children } = $props();
 </script>
 
+<svelte:head>
+	<title>Sharedtelemetry Results</title>
+</svelte:head>
+
 <ParaglideJS {i18n}>
 	<div class="dark flex min-h-screen flex-col bg-[#111a22] text-white">
 		<main class="flex-1">
