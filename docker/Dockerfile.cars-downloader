@@ -1,0 +1,30 @@
+FROM golang:1.23-bookworm as builder
+
+WORKDIR /packages/apps/app
+
+# Install dependencies
+COPY ./packages/apps/cars_downloader/go.* /packages/apps/app/
+COPY ./packages/libs/cars_models/go.* /packages/libs/cars_models/
+COPY ./packages/libs/gorm_utils/go.* /packages/libs/gorm_utils/
+COPY ./packages/libs/irapi/go.* /packages/libs/irapi/
+
+RUN go mod download
+
+# Build
+COPY ./packages/apps/cars_downloader /packages/apps/app
+COPY ./packages/libs/cars_models /packages/libs/cars_models
+COPY ./packages/libs/gorm_utils /packages/libs/gorm_utils
+COPY ./packages/libs/irapi /packages/libs/irapi
+
+RUN go build -v -o /server ./cmd/run_server
+
+# Create a minimal image
+FROM debian:bookworm-slim
+
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /server /server
+
+CMD ["/server"]

@@ -25,6 +25,19 @@ module "drivers" {
   project_number     = var.project_number
 }
 
+module "cars" {
+  source = "./modules/cars"
+
+  iracing_email      = var.iracing_email
+  iracing_password   = var.iracing_password
+  db_password        = var.db_password
+  db_instance_name   = google_sql_database_instance.sharedtelemetry.name
+  db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
+  region             = var.region
+  project            = var.project
+  project_number     = var.project_number
+}
+
 module "events" {
   source = "./modules/events"
 

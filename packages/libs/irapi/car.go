@@ -30,6 +30,7 @@ type CarResponse struct {
 	AwardExempt        bool   `json:"award_exempt"`
 	CarDirpath         string `json:"car_dirpath"`
 	CarId              int    `json:"car_id"`
+	CarMake            string `json:"car_make"`
 	CarName            string `json:"car_name"`
 	CarNameAbbreviated string `json:"car_name_abbreviated"`
 	CarTypes           []struct {
@@ -59,15 +60,15 @@ type CarResponse struct {
 	Sku                     int      `json:"sku"`
 }
 
-func (client *IRacingApiClient) GetCarAssets() (*map[string]CarAssetsResponse, error) {
+func (client *IRacingApiClient) GetCarAssets() (map[int]CarAssetsResponse, error) {
 	url := "/data/car/assets"
 	respBody, err := client.get(url)
 	if err != nil {
 		return nil, err
 	}
 
-	response := &map[string]CarAssetsResponse{}
-	err = json.NewDecoder(respBody).Decode(response)
+	response := map[int]CarAssetsResponse{}
+	err = json.NewDecoder(respBody).Decode(&response)
 	if err != nil {
 		return nil, err
 	}
