@@ -11,8 +11,6 @@
 <div class="flex items-center space-x-2">
 	{#if picture}
 		<img src={picture} {alt} class="mr-4 h-6 w-6 rounded-full object-cover" />
-	{:else}
-		<div class="mr-4 h-6 w-6"></div>
 	{/if}
 
 	{@render children()}

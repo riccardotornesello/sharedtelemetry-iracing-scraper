@@ -14,25 +14,19 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let overallBest: Record<number, number> = {};
-	for (const eventGroup of data.eventGroups) {
-		overallBest[eventGroup.id] = Math.min(
-			...data.ranking.map((r) => Object.values(r.results?.[eventGroup.id] || {})).flat()
-		);
-	}
-
-	let showOverall = $state(data.competition.crewDriversCount <= 1);
+	let competitionWithCrews = data.competitionRanking.competition.crewDriversCount > 1;
+	let showOverall = $state(!competitionWithCrews);
 </script>
 
 <svelte:head>
-	<title>{data.competition.name} - Results</title>
+	<title>{data.competitionRanking.competition.name} - Results</title>
 </svelte:head>
 
 <h1 class="w-full p-5 text-center text-2xl font-bold text-gray-200">
-	{data.competition.name}
+	{data.competitionRanking.competition.name}
 </h1>
 
-{#if data.competition.crewDriversCount > 1}
+{#if data.competitionRanking.competition.crewDriversCount > 1}
 	<label class="inline-flex cursor-pointer items-center">
 		<input
 			type="checkbox"
@@ -53,17 +47,17 @@
 	<table class="min-w-full table-auto text-left text-sm text-gray-400 rtl:text-right">
 		<thead class="bg-gray-700 text-center text-xs uppercase text-gray-400">
 			<tr>
-				<th scope="col" class="px-6 py-3" rowspan="2" colspan="2">{m.driver()}</th>
+				<th scope="col" class="px-6 py-3" rowspan="2" colspan="3">{m.driver()}</th>
 				<th scope="col" class="px-6 py-3" rowspan="2">{m.team()}</th>
 				<th scope="col" class="px-6 py-3" rowspan="2">{m.sum()}</th>
-				{#each data.eventGroups as eventGroup}
+				{#each data.competitionRanking.eventGroups as eventGroup}
 					<th scope="col" class="px-6 py-3" colspan={eventGroup.dates?.length}>
 						{eventGroup.name}
 					</th>
 				{/each}
 			</tr>
 			<tr>
-				{#each data.eventGroups as eventGroup}
+				{#each data.competitionRanking.eventGroups as eventGroup}
 					{#each eventGroup.dates as date}
 						<th scope="col" class="px-6 py-3"> {formatDate(date)}</th>
 					{/each}
@@ -74,19 +68,22 @@
 		<tbody>
 			{#if showOverall === true}
 				<Ranking
-					ranking={data.ranking}
-					drivers={data.drivers}
-					eventGroups={data.eventGroups}
-					{overallBest}
+					ranking={data.competitionRanking.ranking}
+					drivers={data.competitionRanking.drivers}
+					eventGroups={data.competitionRanking.eventGroups}
+					overallBest={data.overallBest}
+					classes={data.classes}
+					showCrew={competitionWithCrews}
 				/>
 			{:else}
 				{#each data.crews as crew, index}
 					<RankingCrew
 						position={index + 1}
 						{crew}
-						drivers={data.drivers}
-						eventGroups={data.eventGroups}
-						{overallBest}
+						drivers={data.competitionRanking.drivers}
+						eventGroups={data.competitionRanking.eventGroups}
+						overallBest={data.overallBest}
+						classes={data.classes}
 					/>
 				{/each}
 			{/if}

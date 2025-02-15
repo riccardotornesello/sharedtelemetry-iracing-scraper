@@ -42,6 +42,19 @@ func GetCompetitionSessions(db *gorm.DB, competitionId uint) ([]*CompetitionSess
 	return sessions, sessionsMap, nil
 }
 
+func GetCompetitionClasses(db *gorm.DB, competitionId uint) ([]*events_models.CompetitionClass, error) {
+	var classes []*events_models.CompetitionClass
+	err := db.
+		Where("competition_id = ?", competitionId).
+		Find(&classes).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	return classes, nil
+}
+
 func GetEventGroupSessions(db *gorm.DB, trackId int, sessionDate string, leagueId int, seasonId int) ([]*events_models.SessionSimsession, error) {
 	simsessionName := "QUALIFY"
 	simsessionNumber := 0

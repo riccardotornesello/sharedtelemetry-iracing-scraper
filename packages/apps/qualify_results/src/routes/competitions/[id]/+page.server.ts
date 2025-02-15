@@ -1,47 +1,46 @@
+import { error } from '@sveltejs/kit';
+import { getCompetitionRanking, type CompetitionRankingResponseClass } from '$lib/api/rank';
 import type { PageServerLoad } from './$types';
-import { env } from '$env/dynamic/private';
-import type { Crew, DriverRanking } from './types';
+import type { Crew } from './types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
 
-	const res = await fetch(
-		`${env.API_BASE_URL || 'http://localhost:8080'}/competitions/${id}/ranking`
-	);
-	const {
-		ranking,
-		drivers,
-		eventGroups,
-		competition
-	}: {
-		ranking: DriverRanking[];
-		drivers: any;
-		eventGroups: any;
-		competition: any;
-	} = await res.json();
+	const competitionRanking = await getCompetitionRanking(id);
+	if (!competitionRanking) {
+		return error(404, 'Competition not found');
+	}
 
+	// Extract the crews from the competition ranking
 	const crews: Record<number, Crew> = {};
-	ranking.forEach((rank) => {
-		const driver = drivers[rank.custId];
+	competitionRanking.ranking.forEach((rank) => {
+		const driver = competitionRanking.drivers[rank.custId];
+		if (!driver) {
+			throw new Error(`Driver with id ${rank.custId} not found`);
+		}
 
+		// If the crew is not already in the crews object, add it
 		if (!crews[driver.crew.id]) {
 			crews[driver.crew.id] = {
-				id: driver.crew.id,
-				name: driver.crew.name,
-				team: driver.crew.team,
+				...driver.crew,
 				ranking: [],
 				sum: 0
 			};
 		}
 
+		// Add the driver's rank to the crew's ranking
 		crews[driver.crew.id].ranking.push(rank);
 	});
 
+	// Calculate the sum for each crew
 	for (const crewId in crews) {
+		// Check that the crew has enough drivers with a time
 		const driversWithTime = crews[crewId].ranking.filter((rank) => rank.sum);
-		if (driversWithTime.length >= competition.crewDriversCount) {
+
+		if (driversWithTime.length >= competitionRanking.competition.crewDriversCount) {
+			// Sum the times of the first `competitionRanking.competition.crewDriversCount` drivers
 			let sum = 0;
-			for (let i = 0; i < competition.crewDriversCount; i++) {
+			for (let i = 0; i < competitionRanking.competition.crewDriversCount; i++) {
 				sum += driversWithTime[i].sum;
 			}
 			crews[crewId].sum = sum;
@@ -50,6 +49,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		}
 	}
 
+	// Sort the crews by sum
 	const sortedCrews = Object.values(crews).sort((a, b) => {
 		if (a.sum === 0) {
 			return 1;
@@ -60,11 +60,30 @@ export const load: PageServerLoad = async ({ params }) => {
 		}
 	});
 
+	// Convert the classes array to a map
+	const classesMap = competitionRanking.classes.reduce(
+		(acc, cls) => {
+			acc[cls.id] = cls;
+			return acc;
+		},
+		{} as Record<number, CompetitionRankingResponseClass>
+	);
+
+	// Calculate the overall best time for each event group
+	const overallBest = competitionRanking.eventGroups.reduce(
+		(acc, eventGroup) => {
+			acc[eventGroup.id] = Math.min(
+				...competitionRanking.ranking.map((r) => Object.values(r.results?.[eventGroup.id] || {})).flat()
+			);
+			return acc;
+		},
+		{} as Record<number, number>
+	);
+
 	return {
-		ranking,
-		drivers,
-		eventGroups,
-		competition,
-		crews: sortedCrews
+		competitionRanking,
+		crews: sortedCrews,
+		classes: classesMap,
+		overallBest,
 	};
 };

@@ -1,17 +1,18 @@
-// TODO: move types and components to lib
-// TODO: check types
-
 export type Crew = {
+	// API info
 	id: number;
 	name: string;
-	team: string;
-	ranking: DriverRanking[];
-	sum: number;
-};
+	carId: number;
+	team: {
+		id: number;
+		name: string;
+		picture: string;
+	};
+	classId: number;
+	carModel: string;
+	carBrandIcon: string;
 
-export type DriverRanking = {
-	pos: number;
-	custId: number;
+	// Calculated info
+	ranking: any[]; // TODO
 	sum: number;
-	results: Record<number, Record<string, number>> | null;
 };

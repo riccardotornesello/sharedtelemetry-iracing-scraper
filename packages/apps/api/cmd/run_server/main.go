@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"os"
 	"sort"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -14,12 +12,8 @@ import (
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 )
 
-type CacheHit struct {
-	data       []byte
-	validUntil time.Time
-}
-
 type RankingResponse struct {
+	Classes     []*ClassInfo        `json:"classes"`
 	Ranking     []*Rank             `json:"ranking"`
 	Drivers     map[int]*DriverInfo `json:"drivers"`
 	EventGroups []*EventGroupInfo   `json:"eventGroups"`
@@ -44,8 +38,16 @@ type CrewInfo struct {
 	Name         string   `json:"name"`
 	CarId        int      `json:"carId"`
 	Team         TeamInfo `json:"team"`
+	ClassId      uint     `json:"classId"`
 	CarModel     string   `json:"carModel"`
 	CarBrandIcon string   `json:"carBrandIcon"`
+}
+
+type ClassInfo struct {
+	Id    uint   `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
+	Index int    `json:"index"`
 }
 
 type DriverInfo struct {
@@ -100,22 +102,19 @@ func main() {
 
 	r := gin.Default()
 
-	// Initialize cache
-	// TODO: use better caching system
-	cache := make(map[string]CacheHit)
-
 	// Handlers
 	r.GET("/competitions/:id/ranking", func(c *gin.Context) {
-		// Check if the response is in the cache
-		if cacheHit, ok := cache[c.Request.RequestURI]; ok {
-			if cacheHit.validUntil.After(time.Now()) {
-				c.Data(http.StatusOK, "application/json", cacheHit.data)
-				return
-			}
-		}
-
 		// Get the competition
 		competition, err := logic.GetCompetitionBySlug(eventsDb, c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition"})
+			return
+		}
+
+		if competition == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Competition not found"})
+			return
+		}
 
 		// Get the sessions valid for the competition
 		sessions, sessionsMap, err := logic.GetCompetitionSessions(eventsDb, competition.ID)
@@ -172,6 +171,13 @@ func main() {
 		carModels, err := logic.GetCarModelsById(carsDb, allwedCarIds)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting car models"})
+			return
+		}
+
+		// Get classes
+		classes, err := logic.GetCompetitionClasses(eventsDb, competition.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition classes"})
 			return
 		}
 
@@ -351,6 +357,7 @@ func main() {
 					CarId:        driver.Crew.IRacingCarId,
 					CarModel:     carModel,
 					CarBrandIcon: carBrandIcon,
+					ClassId:      driver.Crew.ClassID,
 					Team: TeamInfo{
 						Id:      driver.Crew.Team.ID,
 						Name:    driver.Crew.Team.Name,
@@ -380,33 +387,39 @@ func main() {
 			CrewDriversCount: competition.CrewDriversCount,
 		}
 
+		classesInfo := make([]*ClassInfo, len(classes))
+		for i, class := range classes {
+			classesInfo[i] = &ClassInfo{
+				Id:    class.ID,
+				Name:  class.Name,
+				Color: class.Color,
+				Index: class.Index,
+			}
+		}
+
 		response := RankingResponse{
+			Classes:     classesInfo,
 			Ranking:     ranking,
 			EventGroups: eventGroupsInfo,
 			Drivers:     driversInfo,
 			Competition: competitionInfo,
 		}
 
-		// Marshal the response
-		jsonString, err := json.Marshal(response)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error marshalling response"})
-			return
-		}
-
-		// Store the response in the cache
-		cache[c.Request.RequestURI] = CacheHit{
-			data:       jsonString,
-			validUntil: time.Now().Add(5 * time.Minute),
-		}
-
-		// Return the response
-		c.Data(http.StatusOK, "application/json", jsonString)
+		c.JSON(http.StatusOK, response)
 	})
 
 	r.GET("/competitions/:id/csv", func(c *gin.Context) {
 		// Get the competition
 		competition, err := logic.GetCompetitionBySlug(eventsDb, c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition"})
+			return
+		}
+
+		if competition == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Competition not found"})
+			return
+		}
 
 		// Get the sessions valid for the competition
 		sessions, sessionsMap, err := logic.GetCompetitionSessions(eventsDb, competition.ID)
