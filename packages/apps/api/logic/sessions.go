@@ -19,7 +19,7 @@ func GenerateSessionsCsv(sessions []*CompetitionSession, drivers []*events_model
 
 	// Generate CSV rows
 	for _, driver := range drivers {
-		csv += fmt.Sprintf("%s %s,%s,", driver.FirstName, driver.LastName, driver.IRacingCustId)
+		csv += fmt.Sprintf("%s %s,%d,", driver.FirstName, driver.LastName, driver.IRacingCustId)
 		for _, session := range sessions {
 			timeString := ""
 			lapTime, ok := allResults[driver.IRacingCustId][session.SubsessionId]
