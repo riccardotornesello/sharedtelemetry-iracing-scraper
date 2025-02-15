@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/logic"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 )
@@ -107,13 +109,13 @@ func main() {
 		// Get the competition
 		competition, err := logic.GetCompetitionBySlug(eventsDb, c.Param("id"))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition"})
-			return
-		}
-
-		if competition == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Competition not found"})
-			return
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Competition not found"})
+				return
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition"})
+				return
+			}
 		}
 
 		// Get the sessions valid for the competition
@@ -412,13 +414,13 @@ func main() {
 		// Get the competition
 		competition, err := logic.GetCompetitionBySlug(eventsDb, c.Param("id"))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition"})
-			return
-		}
-
-		if competition == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Competition not found"})
-			return
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Competition not found"})
+				return
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting competition"})
+				return
+			}
 		}
 
 		// Get the sessions valid for the competition

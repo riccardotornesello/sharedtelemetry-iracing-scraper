@@ -11,7 +11,7 @@ import (
 func GenerateSessionsCsv(sessions []*CompetitionSession, drivers []*events_models.CompetitionDriver, allResults map[int]map[int]int) string {
 	// Generate CSV the header
 	loc, _ := time.LoadLocation("Europe/Rome")
-	csv := "Driver,"
+	csv := "Driver,Id,"
 	for _, session := range sessions {
 		csv += fmt.Sprintf("%s,", session.LaunchAt.In(loc).Format("02/01/2006 15:04:05"))
 	}
@@ -19,7 +19,7 @@ func GenerateSessionsCsv(sessions []*CompetitionSession, drivers []*events_model
 
 	// Generate CSV rows
 	for _, driver := range drivers {
-		csv += fmt.Sprintf("%s %s,", driver.FirstName, driver.LastName)
+		csv += fmt.Sprintf("%s %s,%s,", driver.FirstName, driver.LastName, driver.IRacingCustId)
 		for _, session := range sessions {
 			timeString := ""
 			lapTime, ok := allResults[driver.IRacingCustId][session.SubsessionId]
