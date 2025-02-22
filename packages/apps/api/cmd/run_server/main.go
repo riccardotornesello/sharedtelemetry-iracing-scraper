@@ -26,6 +26,7 @@ type Rank struct {
 	Pos     int                     `json:"pos"`
 	CustId  int                     `json:"custId"`
 	Sum     int                     `json:"sum"`
+	IsValid bool                    `json:"isValid"`
 	Results map[uint]map[string]int `json:"results"`
 }
 
@@ -275,62 +276,61 @@ func main() {
 			driverRank := &Rank{
 				CustId:  driver.IRacingCustId,
 				Sum:     0,
+				IsValid: true,
 				Results: bestResults[driver.IRacingCustId], // TODO: add default value, it might be null
 			}
 
 			driverBestResults, ok := bestResults[driver.IRacingCustId]
-			if !ok {
-				ranking = append(ranking, driverRank)
-				continue
-			}
-
-			sum := 0
-			isValid := true
-			for _, eventGroup := range eventGroups {
-				if driverBestGroupResults, ok := driverBestResults[eventGroup.ID]; !ok {
-					// If the driver did not participate in the event group, the result is 0
-					isValid = false
-					break
-				} else {
-					// Check if the driver has at least a result in one date of the event group and in case add the best result
-					bestResult := 0
-					for _, result := range driverBestGroupResults {
-						if bestResult == 0 || result < bestResult {
-							bestResult = result
-						}
-					}
-
-					if bestResult > 0 {
-						sum += bestResult
+			if ok {
+				for _, eventGroup := range eventGroups {
+					if driverBestGroupResults, ok := driverBestResults[eventGroup.ID]; !ok {
+						// If the driver did not participate in the event group, the result is 0
+						driverRank.IsValid = false
 					} else {
-						isValid = false
-						break
+						// Check if the driver has at least a result in one date of the event group and in case add the best result
+						bestResult := 0
+						for _, result := range driverBestGroupResults {
+							if bestResult == 0 || result < bestResult {
+								bestResult = result
+							}
+						}
+
+						if bestResult > 0 {
+							driverRank.Sum += bestResult
+						} else {
+							driverRank.IsValid = false
+						}
 					}
 				}
 			}
 
-			if isValid {
-				driverRank.Sum = sum
+			if driverRank.Sum == 0 {
+				driverRank.IsValid = false
 			}
 
 			ranking = append(ranking, driverRank)
 		}
 
-		// Sort the ranking by sum. If the sum is 0, put the driver at the end of the ranking
+		// Sort the ranking by sum. First the valid ones, then the invalid ones and the ones with 0 sum
 		sort.Slice(ranking, func(i, j int) bool {
+			if ranking[i].IsValid != ranking[j].IsValid {
+				return ranking[i].IsValid
+			}
 			if ranking[i].Sum == 0 {
 				return false
 			}
-
 			if ranking[j].Sum == 0 {
 				return true
 			}
-
 			return ranking[i].Sum < ranking[j].Sum
 		})
 
 		for i, driver := range ranking {
 			driver.Pos = i + 1
+
+			if !driver.IsValid {
+				driver.Sum = 0
+			}
 		}
 
 		// Return the response
