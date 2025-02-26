@@ -8,11 +8,6 @@ require (
 	gorm.io/gorm v1.25.12
 )
 
-replace (
-	riccardotornesello.it/sharedtelemetry/iracing/common => ../common
-	riccardotornesello.it/sharedtelemetry/iracing/events => ../events
-)
-
 require (
 	ariga.io/atlas-go-sdk v0.2.3 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect

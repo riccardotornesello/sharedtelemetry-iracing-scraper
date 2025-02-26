@@ -2,15 +2,7 @@ module riccardotornesello.it/sharedtelemetry/iracing/cars_models
 
 go 1.23.2
 
-require (
-	ariga.io/atlas-provider-gorm v0.5.0
-	gorm.io/gorm v1.25.12
-)
-
-replace (
-	riccardotornesello.it/sharedtelemetry/iracing/common => ../common
-	riccardotornesello.it/sharedtelemetry/iracing/events => ../events
-)
+require ariga.io/atlas-provider-gorm v0.5.0
 
 require (
 	ariga.io/atlas-go-sdk v0.2.3 // indirect
@@ -30,4 +22,5 @@ require (
 	gorm.io/driver/postgres v1.5.2 // indirect
 	gorm.io/driver/sqlite v1.5.2 // indirect
 	gorm.io/driver/sqlserver v1.5.2 // indirect
+	gorm.io/gorm v1.25.12 // indirect
 )
