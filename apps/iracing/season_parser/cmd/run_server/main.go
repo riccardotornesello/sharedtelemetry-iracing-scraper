@@ -30,10 +30,7 @@ func main() {
 	var err error
 
 	// Get configuration
-	err = godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file")
-	}
+	godotenv.Load()
 
 	iRacingEmail := os.Getenv("IRACING_EMAIL")
 	iRacingPassword := os.Getenv("IRACING_PASSWORD")
