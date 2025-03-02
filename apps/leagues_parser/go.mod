@@ -11,7 +11,7 @@ require (
 	riccardotornesello.it/sharedtelemetry/iracing/firestore v0.0.0-00010101000000-000000000000
 )
 
-replace riccardotornesello.it/sharedtelemetry/iracing/firestore => ../../libs/iracing/firestore
+replace riccardotornesello.it/sharedtelemetry/iracing/firestore => ../../libs/iracing/firestore_go
 
 require (
 	cloud.google.com/go v0.116.0 // indirect

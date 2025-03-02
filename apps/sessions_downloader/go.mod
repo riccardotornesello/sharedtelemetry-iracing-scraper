@@ -13,7 +13,7 @@ require (
 
 replace (
 	riccardotornesello.it/sharedtelemetry/iracing/cloudrun_utils => ../../libs/cloudrun_utils
-	riccardotornesello.it/sharedtelemetry/iracing/firestore => ../../libs/iracing/firestore
+	riccardotornesello.it/sharedtelemetry/iracing/firestore => ../../libs/iracing/firestore_go
 	riccardotornesello.it/sharedtelemetry/iracing/irapi => ../../libs/irapi
 )
 
