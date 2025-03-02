@@ -69,7 +69,7 @@ module "leagues_parser_job_cron" {
 
   name           = "leagues-parser-job"
   short_name     = "lp-job"
-  schedule       = "0 * * * *"
+  schedule       = "*/5 * * * *"
   region         = var.region
   project        = var.project
   project_number = var.project_number

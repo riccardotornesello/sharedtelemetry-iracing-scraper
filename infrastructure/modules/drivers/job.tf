@@ -5,30 +5,30 @@ variable "classes" {
   }))
 
   default = {
-    sports_car = {
-      id   = "sports-car"
-      cron = "0 2 * * *"
-    }
-    oval = {
-      id   = "oval"
-      cron = "10 2 * * *"
-    }
-    formula_car = {
-      id   = "formula-car"
-      cron = "20 2 * * *"
-    }
-    road = {
-      id   = "road"
-      cron = "30 2 * * *"
-    }
-    dirt_oval = {
-      id   = "dirt-oval"
-      cron = "40 2 * * *"
-    }
-    dirt_road = {
-      id   = "dirt-road"
-      cron = "50 2 * * *"
-    }
+    # sports_car = {
+    #   id   = "sports-car"
+    #   cron = "0 2 * * *"
+    # }
+    # oval = {
+    #   id   = "oval"
+    #   cron = "10 2 * * *"
+    # }
+    # formula_car = {
+    #   id   = "formula-car"
+    #   cron = "20 2 * * *"
+    # }
+    # road = {
+    #   id   = "road"
+    #   cron = "30 2 * * *"
+    # }
+    # dirt_oval = {
+    #   id   = "dirt-oval"
+    #   cron = "40 2 * * *"
+    # }
+    # dirt_road = {
+    #   id   = "dirt-road"
+    #   cron = "50 2 * * *"
+    # }
   }
 }
 
