@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
+	firebase "firebase.google.com/go"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/api/handlers"
 	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 )
+
+const projectID = "sharedtelemetryapp" // TODO: move to env
 
 func main() {
 	// Get configuration
@@ -17,12 +21,6 @@ func main() {
 		log.Println("Error loading .env file")
 	}
 
-	eventsDbUser := os.Getenv("EVENTS_DB_USER")
-	eventsDbPass := os.Getenv("EVENTS_DB_PASS")
-	eventsDbName := os.Getenv("EVENTS_DB_NAME")
-	eventsDbPort := os.Getenv("EVENTS_DB_PORT")
-	eventsDbHost := os.Getenv("EVENTS_DB_HOST")
-
 	carsDbUser := os.Getenv("CARS_DB_USER")
 	carsDbPass := os.Getenv("CARS_DB_PASS")
 	carsDbName := os.Getenv("CARS_DB_NAME")
@@ -30,10 +28,18 @@ func main() {
 	carsDbHost := os.Getenv("CARS_DB_HOST")
 
 	// Initialize database
-	eventsDb, err := database.Connect(eventsDbUser, eventsDbPass, eventsDbHost, eventsDbPort, eventsDbName, 1, 1)
+	firestoreContext := context.Background()
+	firebaseConf := &firebase.Config{ProjectID: projectID}
+	firebaseApp, err := firebase.NewApp(firestoreContext, firebaseConf)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
+
+	firestoreClient, err := firebaseApp.Firestore(firestoreContext)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer firestoreClient.Close()
 
 	carsDb, err := database.Connect(carsDbUser, carsDbPass, carsDbHost, carsDbPort, carsDbName, 1, 1)
 	if err != nil {
@@ -44,7 +50,7 @@ func main() {
 
 	// Handlers
 	r.GET("/competitions/:id/ranking", func(c *gin.Context) {
-		handlers.CompetitionRankingHandler(c, eventsDb, carsDb)
+		handlers.CompetitionRankingHandler(c, eventsDb, carsDb, firestoreClient, firestoreContext)
 	})
 
 	r.GET("/competitions/:id/csv", func(c *gin.Context) {
