@@ -3,27 +3,39 @@ package logic
 import (
 	"context"
 	"fmt"
-	"log/slog"
+	"log"
 	"sync"
 	"time"
 
-	"gorm.io/gorm"
-	"riccardotornesello.it/sharedtelemetry/iracing/events_models"
+	"cloud.google.com/go/firestore"
+	firestore_structs "riccardotornesello.it/sharedtelemetry/iracing/firestore"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
-func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, db *gorm.DB, workers int) error {
-	// Check the info already in the database
-	var dbSession events_models.Session
-	err := db.Where("subsession_id = ?", subsessionId).First(&dbSession).Error
+type workerResponse struct {
+	simsessionNumber int
+	custId           int
+	laps             []*firestore_structs.Lap
+}
+
+func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsessionLaunchAt time.Time, firestoreClient *firestore.Client, firestoreContext context.Context, workers int) error {
+	db := firestoreClient.Collection("iracing_sessions")
+
+	// Skip if already in the database
+	dbSession := firestore_structs.Session{}
+	dbSessionDoc := db.Doc(fmt.Sprintf("%d", subsessionId))
+	dbSessionSnap, err := dbSessionDoc.Get(firestoreContext)
 	if err != nil {
-		return err
+		// TODO: handle
+	} else {
+		err = dbSessionSnap.DataTo(&dbSession)
+		if err != nil {
+			return fmt.Errorf("error parsing session %d from the database: %w", subsessionId, err)
+		}
 	}
 
-	// If the session is already parsed, return
-	// TODO: check by parse date
-	if dbSession.TrackID != 0 {
-		slog.Info("Session %d already parsed", subsessionId)
+	if dbSession.Parsed {
+		log.Printf("Session %d already parsed", subsessionId)
 		return nil
 	}
 
@@ -33,16 +45,29 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		return fmt.Errorf("error getting results for session %d: %w", subsessionId, err)
 	}
 
-	// For each simsession, get the results for each driver
+	session := firestore_structs.Session{
+		Parsed: true,
+
+		LeagueID: results.LeagueId,
+		SeasonID: results.SeasonId,
+		LaunchAt: subsessionLaunchAt, // TODO: populate in league parser
+		TrackID:  results.Track.TrackId,
+
+		Simsessions: make([]*firestore_structs.SessionSimsession, len(results.SessionResults)),
+	}
+
+	// For each simsession, get the results for each driver.
 	// results.SessionResults: one for each simsession (practice, quali...)
 	// results.SessionResults[i].Results: one for each driver
+
+	// Count the number of tasks to be done (one for each driver in each simsession)
 	tasksCount := 0
 	for _, simSessionResult := range results.SessionResults {
 		tasksCount += len(simSessionResult.Results)
 	}
 
 	tasksChan := make(chan sessionLapTask, tasksCount)
-	resultsChan := make(chan *events_models.Lap, 0)
+	resultsChan := make(chan *workerResponse, 0)
 	ctx, cancel := context.WithCancelCause(context.Background())
 	defer cancel(nil)
 
@@ -59,15 +84,14 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 		)
 	}
 
-	// Collect the laps
-	laps := make([]*events_models.Lap, 0)
-
+	// Collect the laps in background
+	lapResults := make([]*workerResponse, 0)
 	var outputWg sync.WaitGroup
 	outputWg.Add(1)
 	go func() {
 		defer outputWg.Done()
-		for lap := range resultsChan {
-			laps = append(laps, lap)
+		for result := range resultsChan {
+			lapResults = append(lapResults, result)
 		}
 	}()
 
@@ -90,84 +114,53 @@ func ParseSession(irClient *irapi.IRacingApiClient, subsessionId int, subsession
 	// Wait for the outputs collection to finish
 	outputWg.Wait()
 
-	// In case of error, return it
+	// In case of error in the workers, return it
 	if err = context.Cause(ctx); err != nil {
 		return err
 	}
 
-	// DB: create a new transaction
-	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Update the session in the database.
-	// If the session is already parsed, return an error.
-	// TODO: check if the session is already parsed by the launch date.
-	result := tx.Model(&events_models.Session{}).Where("subsession_id = ? AND track_id = 0", subsessionId).Updates(events_models.Session{
-		LeagueID: results.LeagueId,
-		SeasonID: results.SeasonId,
-		LaunchAt: subsessionLaunchAt,
-		TrackID:  results.Track.TrackId,
-	})
-	if result.RowsAffected == 0 {
-		tx.Rollback()
-		return fmt.Errorf("session %d already parsed", subsessionId)
-	}
-	if result.Error != nil {
-		tx.Rollback()
-		return err
-	}
-
-	// Store all the simsessions in the database
-	sessions := make([]events_models.SessionSimsession, len(results.SessionResults))
+	// Create the simsessions and participants maps
+	simsessions := make(map[int]*firestore_structs.SessionSimsession)
 	for i, result := range results.SessionResults {
-		sessions[i] = events_models.SessionSimsession{
-			SubsessionID:     subsessionId,
+		simsession := firestore_structs.SessionSimsession{
 			SimsessionNumber: result.SimsessionNumber,
 			SimsessionType:   result.SimsessionType,
 			SimsessionName:   result.SimsessionName,
+
+			Participants: make([]*firestore_structs.SessionSimsessionParticipant, len(result.Results)),
 		}
+
+		simsessions[result.SimsessionNumber] = &simsession
+		session.Simsessions[i] = &simsession
 	}
 
-	if len(sessions) > 0 {
-		if err = tx.Create(sessions).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-
-	// Store the participants of each simsession in the database
-	participants := make([]events_models.SessionSimsessionParticipant, 0)
+	simsessionParticipants := make(map[int]map[int]*firestore_structs.SessionSimsessionParticipant)
 	for _, result := range results.SessionResults {
-		for _, participant := range result.Results {
-			participants = append(participants, events_models.SessionSimsessionParticipant{
-				SubsessionID:     subsessionId,
-				SimsessionNumber: result.SimsessionNumber,
-				CustID:           participant.CustId,
-				CarID:            participant.CarId,
-			})
+		simsessionParticipants[result.SimsessionNumber] = make(map[int]*firestore_structs.SessionSimsessionParticipant)
+
+		for i, participantResults := range result.Results {
+			participant := firestore_structs.SessionSimsessionParticipant{
+				CustID: participantResults.CustId,
+				CarID:  participantResults.CarId,
+			}
+
+			simsessionParticipants[result.SimsessionNumber][participantResults.CustId] = &participant
+			simsessions[result.SimsessionNumber].Participants[i] = &participant
 		}
 	}
 
-	if len(participants) > 0 {
-		if err = tx.Create(participants).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
+	// Populate the laps in the participants
+	for _, lapResult := range lapResults {
+		simsessionParticipants[lapResult.simsessionNumber][lapResult.custId].Laps = lapResult.laps
 	}
 
-	// Store the laps
-	if len(laps) > 0 {
-		if err = tx.Create(laps).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
+	// Save the session in the database
+	_, err = db.Doc(fmt.Sprintf("%d", subsessionId)).Set(firestoreContext, session)
+	if err != nil {
+		return fmt.Errorf("error updating session %d in the database: %w", subsessionId, err)
 	}
 
-	return tx.Commit().Error
+	return nil
 }
 
 type sessionLapTask struct {
@@ -178,7 +171,7 @@ type sessionLapTask struct {
 
 func parseSessionLapsWorker(irClient *irapi.IRacingApiClient,
 	tasksChan <-chan sessionLapTask,
-	resultsChan chan<- *events_models.Lap,
+	resultsChan chan<- *workerResponse,
 	ctx context.Context,
 	wg *sync.WaitGroup,
 	cancel context.CancelCauseFunc,
@@ -203,16 +196,20 @@ func parseSessionLapsWorker(irClient *irapi.IRacingApiClient,
 				return
 			}
 
-			for _, lap := range res.Laps {
-				resultsChan <- &events_models.Lap{
-					SubsessionID:     task.subsessionId,
-					SimsessionNumber: task.simsessionNumber,
-					CustID:           lap.CustId,
-					LapEvents:        lap.LapEvents,
-					Incident:         lap.Incident,
-					LapTime:          lap.LapTime,
-					LapNumber:        lap.LapNumber,
+			laps := make([]*firestore_structs.Lap, len(res.Laps))
+			for i, lap := range res.Laps {
+				laps[i] = &firestore_structs.Lap{
+					LapEvents: lap.LapEvents,
+					Incident:  lap.Incident,
+					LapTime:   lap.LapTime,
+					LapNumber: lap.LapNumber,
 				}
+			}
+
+			resultsChan <- &workerResponse{
+				simsessionNumber: task.simsessionNumber,
+				custId:           task.custId,
+				laps:             laps,
 			}
 		}
 	}

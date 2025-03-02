@@ -9,16 +9,20 @@ import (
 	"net/http"
 	"os"
 
+	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/pubsub"
-	"gorm.io/gorm"
+	firebase "firebase.google.com/go"
+	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/cloudrun_utils/handlers"
-	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 	"riccardotornesello.it/sharedtelemetry/iracing/season_parser/logic"
 )
 
-var db *gorm.DB
+const projectID = "sharedtelemetryapp" // TODO: move to env
+
 var irClient *irapi.IRacingApiClient
+var firestoreClient *firestore.Client
+var firestoreContext context.Context
 var pubSubTopic *pubsub.Topic
 var pubSubCtx context.Context
 
@@ -26,11 +30,10 @@ func main() {
 	var err error
 
 	// Get configuration
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
-	dbName := os.Getenv("DB_NAME")
-	dbPort := os.Getenv("DB_PORT")
-	dbHost := os.Getenv("DB_HOST")
+	err = godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
 
 	iRacingEmail := os.Getenv("IRACING_EMAIL")
 	iRacingPassword := os.Getenv("IRACING_PASSWORD")
@@ -39,10 +42,18 @@ func main() {
 	pubSubTopicId := os.Getenv("PUBSUB_TOPIC")
 
 	// Initialize database
-	db, err = database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 2, 2)
+	firestoreContext = context.Background()
+	firebaseConf := &firebase.Config{ProjectID: projectID}
+	firebaseApp, err := firebase.NewApp(firestoreContext, firebaseConf)
 	if err != nil {
-		log.Fatalf("database.Connect: %v", err)
+		log.Fatalln(err)
 	}
+
+	firestoreClient, err = firebaseApp.Firestore(firestoreContext)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer firestoreClient.Close()
 
 	// Initialize iRacing client
 	irClient, err = irapi.NewIRacingApiClient(iRacingEmail, iRacingPassword)
@@ -113,31 +124,21 @@ func PubSubHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sessionInfo, err := logic.GetMissingSessionInfo(seasonData.LeagueId, seasonData.SeasonId, irClient, db)
+	firstLaunchAt, err := logic.GetFirstSessionLaunchAt(seasonData.LeagueId, seasonData.SeasonId, firestoreClient, firestoreContext)
 	if err != nil {
-		handlers.ReturnException(w, err, "logic.GetMissingSessionInfo")
+		handlers.ReturnException(w, err, "logic.GetFirstSessionLaunchAt")
 		return
 	}
 
-	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	err = logic.StoreMissingSessions(sessionInfo, tx)
-
-	err = logic.SendSessionsToParse(pubSubTopic, pubSubCtx, sessionInfo)
+	seasonSessionsInfo, err := logic.GetLeagueSeasonSessionsInfo(seasonData.LeagueId, seasonData.SeasonId, firstLaunchAt, irClient)
 	if err != nil {
-		tx.Rollback()
+		handlers.ReturnException(w, err, "logic.GetLeagueSeasonSessionsInfo")
+		return
+	}
+
+	err = logic.SendSessionsToParse(pubSubTopic, pubSubCtx, seasonSessionsInfo)
+	if err != nil {
 		handlers.ReturnException(w, err, "logic.SendSessionsToParse")
-		return
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
-		handlers.ReturnException(w, err, "tx.Commit")
 		return
 	}
 
