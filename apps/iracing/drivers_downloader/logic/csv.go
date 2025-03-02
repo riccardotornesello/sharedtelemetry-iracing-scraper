@@ -26,18 +26,18 @@ func GetDriverStatsByCategory(irClient *irapi.IRacingApiClient, carClass string)
 	var err error
 
 	switch carClass {
-	case "sports_car":
-		csvContent, err = irClient.GetDriverStatsByCategorySportsCar()
-	case "oval":
-		csvContent, err = irClient.GetDriverStatsByCategoryOval()
-	case "formula_car":
-		csvContent, err = irClient.GetDriverStatsByCategoryFormulaCar()
-	case "road":
-		csvContent, err = irClient.GetDriverStatsByCategoryRoad()
 	case "dirt_oval":
 		csvContent, err = irClient.GetDriverStatsByCategoryDirtOval()
 	case "dirt_road":
 		csvContent, err = irClient.GetDriverStatsByCategoryDirtRoad()
+	case "formula_car":
+		csvContent, err = irClient.GetDriverStatsByCategoryFormulaCar()
+	case "oval":
+		csvContent, err = irClient.GetDriverStatsByCategoryOval()
+	case "road":
+		csvContent, err = irClient.GetDriverStatsByCategoryRoad()
+	case "sports_car":
+		csvContent, err = irClient.GetDriverStatsByCategorySportsCar()
 	default:
 		err = fmt.Errorf("Invalid car class: %v", carClass)
 	}

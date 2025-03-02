@@ -1,28 +1,21 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
+	firebase "firebase.google.com/go"
 	"github.com/joho/godotenv"
 	"riccardotornesello.it/sharedtelemetry/iracing/drivers_downloader/logic"
-	"riccardotornesello.it/sharedtelemetry/iracing/gorm_utils/database"
 	"riccardotornesello.it/sharedtelemetry/iracing/irapi"
 )
 
-const BATCH_SIZE = 500
+const projectID = "sharedtelemetryapp" // TODO: move to env
 
 func main() {
-	// TODO: prevent deadlock when the job is running
-
 	// Get configuration
 	godotenv.Load()
-
-	dbUser := os.Getenv("DB_USER")
-	dbPass := os.Getenv("DB_PASS")
-	dbName := os.Getenv("DB_NAME")
-	dbPort := os.Getenv("DB_PORT")
-	dbHost := os.Getenv("DB_HOST")
 
 	iRacingEmail := os.Getenv("IRACING_EMAIL")
 	iRacingPassword := os.Getenv("IRACING_PASSWORD")
@@ -31,10 +24,18 @@ func main() {
 
 	// Initialize database
 	log.Println("Connecting to database")
-	db, err := database.Connect(dbUser, dbPass, dbHost, dbPort, dbName, 20, 2)
+	firestoreContext := context.Background()
+	firebaseConf := &firebase.Config{ProjectID: projectID}
+	firebaseApp, err := firebase.NewApp(firestoreContext, firebaseConf)
 	if err != nil {
-		log.Fatalf("database.Connect: %v", err)
+		log.Fatalln(err)
 	}
+
+	firestoreClient, err := firebaseApp.Firestore(firestoreContext)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer firestoreClient.Close()
 	log.Println("Connected to database")
 
 	// Initialize iRacing client
@@ -47,7 +48,7 @@ func main() {
 
 	// Start the job
 	log.Println("Starting job for car class", carClass)
-	err = logic.UpdateDriverStatsByCategory(db, irClient, carClass, BATCH_SIZE)
+	err = logic.UpdateDriverStatsByCategory(firestoreClient, firestoreContext, irClient, carClass)
 	if err != nil {
 		log.Fatal(err)
 	}
