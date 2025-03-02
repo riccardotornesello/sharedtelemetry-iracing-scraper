@@ -3,11 +3,15 @@ import { FirestoreModule } from 'src/firestore/firestore.module';
 import { CompetitionDocument } from './documents/competition.document';
 import { CompetitionsController } from './competitions.controller';
 import { CompetitionsService } from './competitions.service';
+import { IRacingSessionDocument } from './documents/iracing_session.document';
 
 @Module({
   imports: [
     FirestoreModule.forFeature({
-      collections: [CompetitionDocument.collectionName],
+      collections: [
+        CompetitionDocument.collectionName,
+        IRacingSessionDocument.collectionName,
+      ],
     }),
   ],
   controllers: [CompetitionsController],

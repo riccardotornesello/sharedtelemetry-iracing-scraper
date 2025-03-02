@@ -15,6 +15,7 @@ export class CompetitionDocument {
 
   classes: Record<string, CompetitionClass[]>;
   teams: CompetitionTeam[];
+  eventGroups: EventGroup[];
 }
 
 class CompetitionClass {
@@ -24,7 +25,7 @@ class CompetitionClass {
 
 class CompetitionTeam {
   name: string;
-  pictureUrl: string;
+  pictureUrl?: string | null;
 
   crews: CompetitionCrew[];
 }
@@ -33,7 +34,7 @@ class CompetitionCrew {
   name: string;
   iRacingCarId: number;
 
-  class: string;
+  class?: string | null;
 
   drivers: CompetitionDriver[];
 }
@@ -43,4 +44,15 @@ class CompetitionDriver {
   lastName: string;
 
   iRacingId: number;
+}
+
+class EventGroup {
+  name: string;
+  iRacingTrackId: number;
+  sessions: EventSession[];
+}
+
+class EventSession {
+  fromTime: Timestamp;
+  toTime: Timestamp;
 }

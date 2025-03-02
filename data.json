@@ -1,0 +1,602 @@
+{
+  "leagueId": 4402,
+  "seasonId": 0,
+  "name": "2025 Season 1",
+  "slug": "test",
+  "crewDriversCount": 1,
+  "createdAt": "2025-02-26T00:00:00Z",
+  "updatedAt": "2025-02-26T00:00:00Z",
+  "classes": {},
+  "teams": [
+    {
+      "name": "IS Corse",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/IS_Corse_Logo_2024.jpg",
+      "crews": [
+        {
+          "name": "Giuseppe CATALDO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Giuseppe",
+              "lastName": "CATALDO",
+              "iRacingId": 970896
+            }
+          ]
+        },
+        {
+          "name": "Davide BURNELLI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Davide",
+              "lastName": "BURNELLI",
+              "iRacingId": 863658
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Privato",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/aci-1.png",
+      "crews": [
+        {
+          "name": "Michele OSTAN",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Michele", "lastName": "OSTAN", "iRacingId": 667058 }
+          ]
+        },
+        {
+          "name": "Antonio PULICARI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Antonio",
+              "lastName": "PULICARI",
+              "iRacingId": 589301
+            }
+          ]
+        },
+        {
+          "name": "Alessio DOPPIO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessio",
+              "lastName": "DOPPIO",
+              "iRacingId": 1138706
+            }
+          ]
+        },
+        {
+          "name": "Alessio Francesco AMATO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessio Francesco",
+              "lastName": "AMATO",
+              "iRacingId": 723052
+            }
+          ]
+        },
+        {
+          "name": "Luca ROSSI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Luca", "lastName": "ROSSI", "iRacingId": 805495 }
+          ]
+        },
+        {
+          "name": "Roberto CATALANO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Roberto",
+              "lastName": "CATALANO",
+              "iRacingId": 21833
+            }
+          ]
+        },
+        {
+          "name": "Anatoliy KRIVOBOKOV",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Anatoliy",
+              "lastName": "KRIVOBOKOV",
+              "iRacingId": 806224
+            }
+          ]
+        },
+        {
+          "name": "Massimo BURATTI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Massimo",
+              "lastName": "BURATTI",
+              "iRacingId": 499368
+            }
+          ]
+        },
+        {
+          "name": "Fabio MORANDI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Fabio", "lastName": "MORANDI", "iRacingId": 195510 }
+          ]
+        },
+        {
+          "name": "Luca PENNACCHIA",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Luca",
+              "lastName": "PENNACCHIA",
+              "iRacingId": 815855
+            }
+          ]
+        },
+        {
+          "name": "Alessandro LUPO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessandro",
+              "lastName": "LUPO",
+              "iRacingId": 1126209
+            }
+          ]
+        },
+        {
+          "name": "Mario PELLEGRINO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Mario",
+              "lastName": "PELLEGRINO",
+              "iRacingId": 623273
+            }
+          ]
+        },
+        {
+          "name": "Pietroantonio PASQUARIELLO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Pietroantonio",
+              "lastName": "PASQUARIELLO",
+              "iRacingId": 573488
+            }
+          ]
+        },
+        {
+          "name": "Alessio FAMULARI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessio",
+              "lastName": "FAMULARI",
+              "iRacingId": 1027272
+            }
+          ]
+        },
+        {
+          "name": "Franco SARACENO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Franco",
+              "lastName": "SARACENO",
+              "iRacingId": 1055007
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ATS Corsa Esport",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/ATS-Corsa-Esport-Team.jpg",
+      "crews": [
+        {
+          "name": "Riccardo GIANSANTI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Riccardo",
+              "lastName": "GIANSANTI",
+              "iRacingId": 1051964
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Virtual Racing Team",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/VRT-Virtual-Racing-Team-2024-jpg.webp",
+      "crews": [
+        {
+          "name": "Davide VITERITTI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Davide",
+              "lastName": "VITERITTI",
+              "iRacingId": 553231
+            }
+          ]
+        },
+        {
+          "name": "Elio Danilo VINCI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Elio Danilo",
+              "lastName": "VINCI",
+              "iRacingId": 442371
+            }
+          ]
+        },
+        {
+          "name": "Martino PUGNOLI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Martino",
+              "lastName": "PUGNOLI",
+              "iRacingId": 1104304
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "XTUBE Racing",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/XTUBE-Racing-Team.webp",
+      "crews": [
+        {
+          "name": "Massimo MEAZZA",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Massimo",
+              "lastName": "MEAZZA",
+              "iRacingId": 905624
+            }
+          ]
+        },
+        {
+          "name": "Alessandro BALDI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessandro",
+              "lastName": "BALDI",
+              "iRacingId": 1108104
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Free2Race",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/Free2Race_Logo_2024.jpg",
+      "crews": [
+        {
+          "name": "Andrea DIVONO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Andrea", "lastName": "DIVONO", "iRacingId": 982439 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "MAG-Performance",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/MAG-Performance-SRT.png",
+      "crews": [
+        {
+          "name": "Andrea BRISTOT",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Andrea",
+              "lastName": "BRISTOT",
+              "iRacingId": 512281
+            }
+          ]
+        },
+        {
+          "name": "Bernardo BERLONI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Bernardo",
+              "lastName": "BERLONI",
+              "iRacingId": 622529
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tatum Res-Tech",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/Tatum-Res-Tech-Team.webp",
+      "crews": [
+        {
+          "name": "Leonardo Luis D'ALCAMO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Leonardo Luis",
+              "lastName": "D'ALCAMO",
+              "iRacingId": 523310
+            }
+          ]
+        },
+        {
+          "name": "Tommaso ZAPPAL\u00c0",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Tommaso",
+              "lastName": "ZAPPAL\u00c0",
+              "iRacingId": 571165
+            }
+          ]
+        },
+        {
+          "name": "Pablo CAROLEO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Pablo", "lastName": "CAROLEO", "iRacingId": 598453 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Red Fury E-Sports",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/Red-Fury-E-Sports-Team.webp",
+      "crews": [
+        {
+          "name": "Andrea GIAGNORIO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Andrea",
+              "lastName": "GIAGNORIO",
+              "iRacingId": 847402
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Amethyst Racing",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/Amethyst-Racing-Team.webp",
+      "crews": [
+        {
+          "name": "Stefano RE",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Stefano", "lastName": "RE", "iRacingId": 861281 }
+          ]
+        },
+        {
+          "name": "Alessandro BOTTI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessandro",
+              "lastName": "BOTTI",
+              "iRacingId": 552689
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "North Sim Racing",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/North-Sim-Racing-2024-Logo-jpg.webp",
+      "crews": [
+        {
+          "name": "Samuele SPIEZIO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Samuele",
+              "lastName": "SPIEZIO",
+              "iRacingId": 900692
+            }
+          ]
+        },
+        {
+          "name": "Daniele ALBERTI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Daniele",
+              "lastName": "ALBERTI",
+              "iRacingId": 810501
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "The Italian Job SimRacing ASD",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/The-Italian-Job-SimRacing-ASD-Team-2025.webp",
+      "crews": [
+        {
+          "name": "Andrea SANVITO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Andrea",
+              "lastName": "SANVITO",
+              "iRacingId": 460152
+            }
+          ]
+        },
+        {
+          "name": "Ivan FALCONE",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Ivan", "lastName": "FALCONE", "iRacingId": 571637 }
+          ]
+        },
+        {
+          "name": "Riccardo TORNESELLO",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Riccardo",
+              "lastName": "TORNESELLO",
+              "iRacingId": 911231
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vesta Sport",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/Vesta-Sport-Team-2025.webp",
+      "crews": [
+        {
+          "name": "Filippo UBER",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Filippo", "lastName": "UBER", "iRacingId": 1010150 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RFM eSport",
+      "pictureUrl": "https://www.simracingleague.it/wp-content/uploads/RFM-eSport-RealFeed-Motorsport-Team-2025.webp",
+      "crews": [
+        {
+          "name": "Matteo BELLANDI",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Matteo",
+              "lastName": "BELLANDI",
+              "iRacingId": 935836
+            }
+          ]
+        },
+        {
+          "name": "Riccardo TOCU",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            { "firstName": "Riccardo", "lastName": "TOCU", "iRacingId": 980151 }
+          ]
+        },
+        {
+          "name": "Nicolas PADOVAN",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Nicolas",
+              "lastName": "PADOVAN",
+              "iRacingId": 896130
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ADX Racing eSport",
+      "pictureUrl": null,
+      "crews": [
+        {
+          "name": "Alessandro DE PANFILIS",
+          "iRacingCarId": 148,
+          "class": null,
+          "drivers": [
+            {
+              "firstName": "Alessandro",
+              "lastName": "DE PANFILIS",
+              "iRacingId": 442528
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "eventGroups": [
+    {
+      "name": "Red Bull Ring",
+      "iRacingTrackId": 403,
+      "sessions": [
+        {
+          "fromTime": "2025-02-26T00:00:00Z",
+          "toTime": "2025-02-27T00:00:00Z"
+        },
+
+        {
+          "fromTime": "2025-03-01T00:00:00Z",
+          "toTime": "2025-03-02T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "name": "Hungaroring",
+      "iRacingTrackId": 413,
+      "sessions": [
+        {
+          "fromTime": "2025-02-27T00:00:00Z",
+          "toTime": "2025-02-28T00:00:00Z"
+        },
+
+        {
+          "fromTime": "2025-03-02T00:00:00Z",
+          "toTime": "2025-03-03T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}
