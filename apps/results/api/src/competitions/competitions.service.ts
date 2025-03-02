@@ -23,6 +23,17 @@ export class CompetitionsService {
     return snapshot.data() || null;
   }
 
+  async getCompetitionBySlug(
+    slug: string,
+  ): Promise<CompetitionDocument | null> {
+    const snapshot = await this.competitionsCollection
+      .where('slug', '==', slug)
+      .limit(1)
+      .get();
+
+    return snapshot.docs[0]?.data() || null;
+  }
+
   async getCompetitionBestResults(competition: CompetitionDocument) {
     const bestResults = {}; //  Customer ID, Group, Date, average ms
 

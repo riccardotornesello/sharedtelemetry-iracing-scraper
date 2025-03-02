@@ -1,6 +1,13 @@
 import { Controller, Get, NotFoundException } from '@nestjs/common';
 import { CompetitionsService } from './competitions.service';
-import * as dayjs from 'dayjs';
+
+type RankingItem = {
+  custId: number;
+  sum: number;
+  isValid: boolean;
+  results: Record<string, number>[];
+  position: number;
+};
 
 @Controller('competitions')
 export class CompetitionsController {
@@ -8,9 +15,8 @@ export class CompetitionsController {
 
   @Get()
   async getHello() {
-    const competition = await this.competitionsService.getCompetition(
-      'ywbHYk74cFdDz1ZmIPay',
-    );
+    const competition =
+      await this.competitionsService.getCompetitionBySlug('test');
     if (!competition) {
       throw new NotFoundException('Competition not found');
     }
@@ -18,10 +24,13 @@ export class CompetitionsController {
     const bestResults =
       await this.competitionsService.getCompetitionBestResults(competition);
 
-    const ranking: any[] = [];
+    const driverIds = competition.teams.map((team) =>
+      team.crews.map((crew) => crew.drivers.map((driver) => driver.iRacingId)),
+    );
 
-    // TODO: loop on drivers
-    for (const custId in bestResults) {
+    const driversRanking: RankingItem[] = [];
+
+    for (const custId of driverIds.flat(3)) {
       let totalMs = 0;
       let isValid = true;
 
@@ -31,7 +40,7 @@ export class CompetitionsController {
         eventGroupIndex++
       ) {
         const eventGroupResults: Record<string, number> | undefined =
-          bestResults[custId][eventGroupIndex];
+          bestResults[custId.toString()]?.[eventGroupIndex];
         if (!eventGroupResults) {
           isValid = false;
         } else {
@@ -42,14 +51,38 @@ export class CompetitionsController {
         }
       }
 
-      ranking.push({
-        custId: parseInt(custId),
+      driversRanking.push({
+        position: 0,
+        custId: custId,
         sum: totalMs,
         isValid,
-        results: bestResults[custId],
+        results: bestResults[custId.toString()],
       });
     }
 
-    return ranking;
+    // Sort the driversRanking. Primary sort by isValid, secondary by sum
+    driversRanking.sort((a, b) => {
+      if (a.isValid && !b.isValid) {
+        return -1;
+      }
+      if (!a.isValid && b.isValid) {
+        return 1;
+      }
+      if (a.sum === 0) {
+        return 1;
+      }
+      if (b.sum === 0) {
+        return -1;
+      }
+      return a.sum - b.sum;
+    });
+
+    // Add the position to the driversRanking
+    driversRanking.forEach((item, index) => {
+      item.position = index + 1;
+    });
+
+    // TODO: competition serializer
+    return { driversRanking, competition };
   }
 }
