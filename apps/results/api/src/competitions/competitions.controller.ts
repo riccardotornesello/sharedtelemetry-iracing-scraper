@@ -82,7 +82,6 @@ export class CompetitionsController {
       item.position = index + 1;
     });
 
-    // TODO: competition serializer
     return { driversRanking, competition };
   }
 }

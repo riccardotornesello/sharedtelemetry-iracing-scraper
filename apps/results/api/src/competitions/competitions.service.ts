@@ -7,6 +7,7 @@ import {
 } from './documents/iracing_session.document';
 import { Timestamp } from '@google-cloud/firestore';
 import * as dayjs from 'dayjs';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CompetitionsService {
@@ -31,7 +32,37 @@ export class CompetitionsService {
       .limit(1)
       .get();
 
-    return snapshot.docs[0]?.data() || null;
+    // TODO: move to utils file
+    const transformFirestoreTypes = (obj: any): any => {
+      Object.keys(obj).forEach((key) => {
+        if (!obj[key]) return;
+        if (typeof obj[key] === 'object' && 'toDate' in obj[key]) {
+          obj[key] = obj[key].toDate().toISOString();
+        } else if (obj[key].constructor.name === 'GeoPoint') {
+          const { latitude, longitude } = obj[key];
+          obj[key] = { latitude, longitude };
+        } else if (obj[key].constructor.name === 'DocumentReference') {
+          const { id, path } = obj[key];
+          obj[key] = { id, path };
+        } else if (typeof obj[key] === 'object') {
+          transformFirestoreTypes(obj[key]);
+        }
+      });
+      return obj;
+    };
+
+    const data = snapshot.docs[0]?.data();
+    return data
+      ? plainToInstance(
+          CompetitionDocument,
+          transformFirestoreTypes({
+            ...data,
+          }),
+          {
+            ignoreDecorators: true,
+          },
+        )
+      : null;
   }
 
   async getCompetitionBestResults(competition: CompetitionDocument) {

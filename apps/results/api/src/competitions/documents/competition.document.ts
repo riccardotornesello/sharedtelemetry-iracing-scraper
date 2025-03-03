@@ -1,4 +1,5 @@
 import { Timestamp } from '@google-cloud/firestore';
+import { Exclude } from 'class-transformer';
 
 export class CompetitionDocument {
   static collectionName = 'results_competitions';
@@ -8,9 +9,12 @@ export class CompetitionDocument {
 
   name: string;
   slug: string;
+
   crewDriversCount: number;
 
+  @Exclude()
   createdAt: Timestamp;
+  @Exclude()
   updatedAt: Timestamp;
 
   classes: Record<string, CompetitionClass[]>;
