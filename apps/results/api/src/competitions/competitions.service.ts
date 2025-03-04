@@ -147,7 +147,7 @@ export class CompetitionsService {
             (!groupDriverResults[participant.custId] ||
               groupDriverResults[participant.custId] > avgLapTime)
           ) {
-            groupDriverResults[participant.custId] = avgLapTime;
+            groupDriverResults[participant.custId] = Math.trunc(avgLapTime);
           }
         }
       }

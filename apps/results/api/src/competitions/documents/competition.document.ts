@@ -1,5 +1,6 @@
 import { Timestamp } from '@google-cloud/firestore';
-import { Exclude } from 'class-transformer';
+import { Exclude, Transform, Type } from 'class-transformer';
+import { TimestampTransform } from 'src/utils/decorators/transform';
 
 export class CompetitionDocument {
   static collectionName = 'results_competitions';
@@ -13,12 +14,20 @@ export class CompetitionDocument {
   crewDriversCount: number;
 
   @Exclude()
+  @TimestampTransform()
   createdAt: Timestamp;
+
   @Exclude()
+  @TimestampTransform()
   updatedAt: Timestamp;
 
+  @Type(() => CompetitionClass)
   classes: Record<string, CompetitionClass[]>;
+
+  @Type(() => CompetitionTeam)
   teams: CompetitionTeam[];
+
+  @Type(() => EventGroup)
   eventGroups: EventGroup[];
 }
 
@@ -53,10 +62,15 @@ class CompetitionDriver {
 class EventGroup {
   name: string;
   iRacingTrackId: number;
+
+  @Type(() => EventSession)
   sessions: EventSession[];
 }
 
 class EventSession {
+  @TimestampTransform()
   fromTime: Timestamp;
+
+  @TimestampTransform()
   toTime: Timestamp;
 }
