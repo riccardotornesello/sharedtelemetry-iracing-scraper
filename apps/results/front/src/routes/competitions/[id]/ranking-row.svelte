@@ -49,7 +49,7 @@
 		</div>
 	</td>
 
-	<td class="px-2 py-2">
+	<td class="px-2 py-1">
 		<TimeCard time={rankingItem.sum} />
 	</td>
 

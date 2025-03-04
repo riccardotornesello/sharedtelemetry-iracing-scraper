@@ -26,11 +26,11 @@
 	<table class="min-w-full table-auto text-left text-sm text-gray-400 rtl:text-right">
 		<thead class="bg-gray-700 text-center text-xs uppercase text-gray-400">
 			<tr>
-				<th scope="col" class="px-6 py-3" rowspan="2" colspan="2">{m.driver()}</th>
-				<th scope="col" class="px-6 py-3" rowspan="2">{m.team()}</th>
-				<th scope="col" class="px-6 py-3" rowspan="2">{m.sum()}</th>
+				<th scope="col" class="px-6 py-2" rowspan="2" colspan="2">{m.driver()}</th>
+				<th scope="col" class="px-6 py-2" rowspan="2">{m.team()}</th>
+				<th scope="col" class="px-6 py-2" rowspan="2">{m.sum()}</th>
 				{#each data.competition.eventGroups as eventGroup}
-					<th scope="col" class="px-6 py-3" colspan={eventGroup.sessions.length}>
+					<th scope="col" class="px-6 py-2" colspan={eventGroup.sessions.length}>
 						{eventGroup.name}
 					</th>
 				{/each}
@@ -38,7 +38,7 @@
 			<tr>
 				{#each data.competition.eventGroups as eventGroup}
 					{#each eventGroup.sessions as session}
-						<th scope="col" class="px-6 py-3"> {formatDate(session.fromTime)}</th>
+						<th scope="col" class="px-6 py-2"> {formatDate(session.fromTime)}</th>
 					{/each}
 				{/each}
 			</tr>

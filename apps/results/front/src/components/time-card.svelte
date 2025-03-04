@@ -19,7 +19,7 @@
 </script>
 
 <div
-	class="h-full w-full rounded p-4 text-center font-mono text-gray-300"
+	class="h-full w-full rounded p-3 text-center font-mono text-gray-300"
 	class:bg-purple-600={isOverallBest}
 	class:text-purple-200={isOverallBest}
 	class:bg-green-600={isPersonalBest && !isOverallBest}

@@ -17,7 +17,7 @@
 </script>
 
 {#each event.sessions as session}
-	<td class="px-2 py-2">
+	<td class="px-2 py-1">
 		<TimeCard
 			isPersonalBest={eventResults?.[dayjs(session.fromTime).format('YYYY-MM-DD')] == personalBest}
 			isOverallBest={eventResults?.[dayjs(session.fromTime).format('YYYY-MM-DD')] ==

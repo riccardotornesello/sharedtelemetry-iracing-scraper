@@ -44,7 +44,7 @@
 	</td>
 
 	<td
-		class="{carClass && 'min-w-10 px-4 py-2'} text-center text-white"
+		class="{carClass && 'min-w-10 px-4 py-1'} text-center text-white"
 		style:background-color={carClass?.color}
 	>
 		{carClass?.name}
@@ -70,7 +70,7 @@
 		</div>
 	</td>
 
-	<td class="px-2 py-2"><TimeCard time={crew.sum} /></td>
+	<td class="px-2 py-1"><TimeCard time={crew.sum} /></td>
 
 	{#each eventGroups as eventGroup}
 		{#each eventGroup.dates as date}
