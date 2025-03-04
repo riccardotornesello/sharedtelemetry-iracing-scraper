@@ -1,89 +1,59 @@
 import { error } from '@sveltejs/kit';
-import { getCompetitionRanking, type CompetitionRankingResponseClass } from '$lib/api/rank';
+import {
+	getCompetitionRanking,
+	type CompetitionCrew,
+	type CompetitionDriver,
+	type CompetitionTeam
+} from '$lib/api/competition';
 import type { PageServerLoad } from './$types';
-import type { Crew } from './types';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
 
-	const competitionRanking = await getCompetitionRanking(id);
-	if (!competitionRanking) {
+	const competitionRankingResponse = await getCompetitionRanking(id);
+	if (!competitionRankingResponse) {
 		return error(404, 'Competition not found');
 	}
 
-	// Extract the crews from the competition ranking
-	const crews: Record<number, Crew> = {};
-	competitionRanking.ranking.forEach((rank) => {
-		const driver = competitionRanking.drivers[rank.custId];
-		if (!driver) {
-			throw new Error(`Driver with id ${rank.custId} not found`);
-		}
-
-		// If the crew is not already in the crews object, add it
-		if (!crews[driver.crew.id]) {
-			crews[driver.crew.id] = {
-				...driver.crew,
-				ranking: [],
-				sum: 0
-			};
-		}
-
-		// Add the driver's rank to the crew's ranking
-		crews[driver.crew.id].ranking.push(rank);
-	});
-
-	// Calculate the sum for each crew
-	for (const crewId in crews) {
-		// Check that the crew has enough drivers with a time
-		const driversWithTime = crews[crewId].ranking.filter((rank) => rank.sum);
-
-		if (driversWithTime.length >= competitionRanking.competition.crewDriversCount) {
-			// Sum the times of the first `competitionRanking.competition.crewDriversCount` drivers
-			let sum = 0;
-			for (let i = 0; i < competitionRanking.competition.crewDriversCount; i++) {
-				sum += driversWithTime[i].sum;
-			}
-			crews[crewId].sum = sum;
-		} else {
-			crews[crewId].sum = 0;
-		}
-	}
-
-	// Sort the crews by sum
-	const sortedCrews = Object.values(crews).sort((a, b) => {
-		if (a.sum === 0) {
-			return 1;
-		} else if (b.sum === 0) {
-			return -1;
-		} else {
-			return a.sum - b.sum;
-		}
-	});
-
-	// Convert the classes array to a map
-	const classesMap = competitionRanking.classes.reduce(
-		(acc, cls) => {
-			acc[cls.id] = cls;
-			return acc;
-		},
-		{} as Record<number, CompetitionRankingResponseClass>
-	);
-
 	// Calculate the overall best time for each event group
-	const overallBest = competitionRanking.eventGroups.reduce(
-		(acc, eventGroup) => {
-			acc[eventGroup.id] = Math.min(
-				...competitionRanking.ranking.map((r) => Object.values(r.results?.[eventGroup.id] || {})).flat()
-			);
-			return acc;
-		},
-		{} as Record<number, number>
-	);
+	const overallBest = {} as Record<string, number>;
+	competitionRankingResponse.driversRanking.forEach((driverRanking) => {
+		Object.entries(driverRanking.results).forEach(([eventGroupId, results]) => {
+			Object.values(results).forEach((result) => {
+				if (result > 0 && (!overallBest[eventGroupId] || result < overallBest[eventGroupId])) {
+					overallBest[eventGroupId] = result;
+				}
+			});
+		});
+	});
+
+	// Extract the drivers
+	let driversMap: Record<number, CompetitionDriver> = {};
+	let crewsMap: Record<number, CompetitionCrew> = {};
+	let teamsMap: Record<number, CompetitionTeam> = {};
+	let driversCrewMap: Record<number, CompetitionCrew> = {};
+	let driversTeamMap: Record<number, CompetitionTeam> = {};
+
+	competitionRankingResponse.competition.teams.forEach((team, teamIndex) => {
+		teamsMap[teamIndex] = team;
+		team.crews.forEach((crew, crewIndex) => {
+			crewsMap[crewIndex] = crew;
+			crew.drivers.forEach((driver) => {
+				driversMap[driver.iRacingId] = driver;
+				driversCrewMap[driver.iRacingId] = crew;
+				driversTeamMap[driver.iRacingId] = team;
+			});
+		});
+	});
 
 	return {
-		competitionRanking,
-		crews: sortedCrews,
-		classes: classesMap,
+		driversRanking: competitionRankingResponse.driversRanking,
+		competition: competitionRankingResponse.competition,
 		overallBest,
+		driversMap,
+		crewsMap,
+		teamsMap,
+		driversCrewMap,
+		driversTeamMap
 	};
 };

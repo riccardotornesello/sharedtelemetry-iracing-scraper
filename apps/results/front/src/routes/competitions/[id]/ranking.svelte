@@ -1,45 +1,37 @@
 <script lang="ts">
 	import type {
-		CompetitionRankingResponseDriverRank,
-		CompetitionRankingResponseDriver,
-		CompetitionRankingEventGroup,
-		CompetitionRankingResponseClass
-	} from '$lib/api/rank';
+		CompetitionDriver,
+		EventGroup,
+		CompetitionCrew,
+		CompetitionTeam,
+		RankingItem
+	} from '$lib/api/competition';
 	import RankingRow from './ranking-row.svelte';
 
 	let {
 		ranking,
 		drivers,
-		eventGroups,
-		overallBest,
-		classes,
-		showTeam = true,
-		showClass = true,
-		showCar = true,
-		showCrew = false
+		events,
+		driversCrewMap,
+		driversTeamMap,
+		overallBest
 	}: {
-		ranking: CompetitionRankingResponseDriverRank[];
-		drivers: Record<number, CompetitionRankingResponseDriver>;
-		eventGroups: CompetitionRankingEventGroup[];
-		overallBest: Record<number, number>;
-		classes: Record<number, CompetitionRankingResponseClass>;
-		showTeam?: boolean;
-		showClass?: boolean;
-		showCar?: boolean;
-		showCrew?: boolean;
+		ranking: RankingItem[];
+		drivers: Record<number, CompetitionDriver>;
+		events: EventGroup[];
+		driversCrewMap: Record<number, CompetitionCrew>;
+		driversTeamMap: Record<number, CompetitionTeam>;
+		overallBest: Record<string, number>;
 	} = $props();
 </script>
 
-{#each ranking as rank}
+{#each ranking as rankingItem}
 	<RankingRow
-		driverRank={rank}
-		{drivers}
-		{eventGroups}
+		{rankingItem}
+		driver={drivers[rankingItem.custId]}
+		{events}
+		crew={driversCrewMap[rankingItem.custId]}
+		team={driversTeamMap[rankingItem.custId]}
 		{overallBest}
-		{classes}
-		{showTeam}
-		{showClass}
-		{showCar}
-		{showCrew}
 	/>
 {/each}

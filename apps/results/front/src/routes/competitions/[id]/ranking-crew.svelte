@@ -3,7 +3,7 @@
 		CompetitionRankingResponseDriver,
 		CompetitionRankingEventGroup,
 		CompetitionRankingResponseClass
-	} from '$lib/api/rank';
+	} from '$lib/api/competition';
 	import type { Crew } from './types';
 	import TimeCard from '../../../components/time-card.svelte';
 	import Ranking from './ranking.svelte';
