@@ -1,4 +1,4 @@
-import { Controller, Get, NotFoundException } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { CompetitionsService } from './competitions.service';
 
 type RankingItem = {
@@ -13,10 +13,10 @@ type RankingItem = {
 export class CompetitionsController {
   constructor(private readonly competitionsService: CompetitionsService) {}
 
-  @Get()
-  async getHello() {
+  @Get(':slug/ranking')
+  async getCompetitionRanking(@Param('slug') slug: string) {
     const competition =
-      await this.competitionsService.getCompetitionBySlug('test');
+      await this.competitionsService.getCompetitionBySlug(slug);
     if (!competition) {
       throw new NotFoundException('Competition not found');
     }
@@ -56,7 +56,7 @@ export class CompetitionsController {
         custId: custId,
         sum: totalMs,
         isValid,
-        results: bestResults[custId.toString()],
+        results: bestResults[custId.toString()] || {},
       });
     }
 
