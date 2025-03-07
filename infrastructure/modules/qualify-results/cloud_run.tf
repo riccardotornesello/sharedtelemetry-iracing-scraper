@@ -16,7 +16,7 @@ resource "google_cloud_run_v2_service" "qualify_results_frontend" {
     }
 
     containers {
-      image = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/qualify-results:latest" # TODO: variable
+      image = "europe-west1-docker.pkg.dev/sharedtelemetryapp/sessions-downloader/results-front:latest" # TODO: variable
 
       env {
         name  = "API_BASE_URL"

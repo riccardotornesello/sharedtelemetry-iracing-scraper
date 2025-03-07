@@ -1,25 +1,27 @@
-resource "google_sql_database_instance" "sharedtelemetry" {
-  # TODO: certificate
+# resource "google_sql_database_instance" "sharedtelemetry" {
+#   # TODO: certificate
 
-  name             = "sessions-db"
-  database_version = "POSTGRES_17"
-  region           = var.region
+#   name             = "sessions-db"
+#   database_version = "POSTGRES_17"
+#   region           = var.region
 
-  settings {
-    edition           = "ENTERPRISE"
-    tier              = "db-f1-micro"
-    availability_type = "ZONAL"
-    disk_autoresize   = true
+#   deletion_protection = false
 
-    ip_configuration {
-      ipv4_enabled = true
+#   settings {
+#     edition           = "ENTERPRISE"
+#     tier              = "db-f1-micro"
+#     availability_type = "ZONAL"
+#     disk_autoresize   = true
 
-      dynamic "authorized_networks" {
-        for_each = var.db_whitelist
-        content {
-          value = authorized_networks.value
-        }
-      }
-    }
-  }
-}
+#     ip_configuration {
+#       ipv4_enabled = true
+
+#       dynamic "authorized_networks" {
+#         for_each = var.db_whitelist
+#         content {
+#           value = authorized_networks.value
+#         }
+#       }
+#     }
+#   }
+# }
