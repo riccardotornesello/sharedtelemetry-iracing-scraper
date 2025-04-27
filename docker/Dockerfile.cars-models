@@ -1,4 +1,0 @@
-FROM arigaio/atlas:latest
-
-COPY ./packages/libs/cars_models/migrations /migrations
-COPY ./packages/libs/cars_models/atlas.hcl .

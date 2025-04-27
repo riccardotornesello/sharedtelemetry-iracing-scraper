@@ -1,8 +1,0 @@
-{
-	"$schema": "https://inlang.com/schema/inlang-message-format",
-	"sum": "Somma",
-	"team": "Team",
-	"driver": "Pilota",
-	"made_by": "Made with ❤️ by",
-	"general_ranking": "Mostra classifica generale"
-}
