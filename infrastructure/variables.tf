@@ -1,33 +1,15 @@
+variable "region" {
+  description = "The Google Cloud region where the function will be deployed."
+  type        = string
+  default     = "europe-west1"
+}
+
 variable "iracing_email" {
-  type = string
+  description = "The email address used to authenticate with the iRacing API."
+  type        = string
 }
 
 variable "iracing_password" {
-  type = string
-}
-
-variable "db_password" {
-  type = string
-}
-
-variable "db_whitelist" {
-  type    = list(string)
-  default = []
-}
-
-variable "region" {
-  type    = string
-  default = "europe-west1"
-}
-
-variable "domain" {
-  type = string
-}
-
-variable "project" {
-  type = string
-}
-
-variable "project_number" {
-  type = number
+  description = "The password used to authenticate with the iRacing API."
+  type        = string
 }

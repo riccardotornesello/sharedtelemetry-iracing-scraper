@@ -1,93 +1,94 @@
-provider "google-beta" {
-  project         = "sharedtelemetryapp"
-  region          = var.region
-  zone            = "${var.region}-a"
-  request_timeout = "60s"
-}
-
 provider "google" {
-  project         = "sharedtelemetryapp"
+  project         = "sharedtelemetryapptest"
   region          = var.region
-  zone            = "${var.region}-a"
   request_timeout = "60s"
 }
 
-module "test" {
-  source = "./modules/public-cloud-function"
-
-  region         = var.region
-  project        = "sharedtelemetryapp"
-  source_archive = "../apps/results/api/dist/api.zip"
-  name           = "api"
-  short_name     = "api"
-  entry_point    = "apiNEST"
-  runtime        = "nodejs22"
-  environment_variables = {
-    "ENVIRONMENT" = "production"
-  }
-  domain = "api.results.sharedtelemetry.com"
-  roles  = ["roles/firestore.serviceAgent", "roles/datastore.viewer"]
+resource "google_pubsub_topic" "cars_parse_trigger" {
+  name = "iracing_cars_parse_trigger"
 }
 
-# module "drivers" {
-#   source = "./modules/drivers"
-
-#   iracing_email      = var.iracing_email
-#   iracing_password   = var.iracing_password
-#   db_password        = var.db_password
-#   db_instance_name   = google_sql_database_instance.sharedtelemetry.name
-#   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
-#   region             = var.region
-#   project            = var.project
-#   project_number     = var.project_number
-# }
-
-# module "cars" {
-#   source = "./modules/cars"
-
-#   iracing_email      = var.iracing_email
-#   iracing_password   = var.iracing_password
-#   db_password        = var.db_password
-#   db_instance_name   = google_sql_database_instance.sharedtelemetry.name
-#   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
-#   region             = var.region
-#   project            = var.project
-#   project_number     = var.project_number
-# }
-
-# module "events" {
-#   source = "./modules/events"
-
-#   iracing_email      = var.iracing_email
-#   iracing_password   = var.iracing_password
-#   db_password        = var.db_password
-#   db_instance_name   = google_sql_database_instance.sharedtelemetry.name
-#   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
-#   region             = var.region
-#   project            = var.project
-#   project_number     = var.project_number
-# }
-
-module "qualify_results" {
-  source = "./modules/qualify-results"
-  domain = var.domain
-
-  region = var.region
+resource "google_pubsub_topic" "drivers_parse_trigger" {
+  name = "iracing_drivers_parse_trigger"
 }
 
-# module "api" {
-#   source = "./modules/api"
-#   domain = "api.${var.domain}"
+resource "google_pubsub_topic" "leagues_parse_trigger" {
+  name = "iracing_leagues_parse_trigger"
+}
 
-#   db_connection_name = google_sql_database_instance.sharedtelemetry.connection_name
+resource "google_pubsub_topic" "season_parse_trigger" {
+  name = "iracing_season_parse_trigger"
+}
 
-#   events_db_user     = module.events.db_user.name
-#   events_db_password = var.db_password
-#   events_db_name     = module.events.db.name
+resource "google_pubsub_topic" "session_parse_trigger" {
+  name = "iracing_session_parse_trigger"
+}
 
-#   cars_db_user     = module.cars.db_user.name
-#   cars_db_password = var.db_password
-#   cars_db_name     = module.cars.db.name
+locals {
+  tasks = [
+    {
+      name         = "cars"
+      source_dir   = "${path.module}/../apps/cars"
+      pubsub_topic = google_pubsub_topic.cars_parse_trigger.id
+      environment_variables = {
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        IRACING_EMAIL        = var.iracing_email
+        IRACING_PASSWORD     = var.iracing_password
+      }
+    },
+    {
+      name         = "drivers"
+      source_dir   = "${path.module}/../apps/drivers"
+      pubsub_topic = google_pubsub_topic.drivers_parse_trigger.id
+      environment_variables = {
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        IRACING_EMAIL        = var.iracing_email
+        IRACING_PASSWORD     = var.iracing_password
+      }
+    },
+    {
+      name         = "leagues"
+      source_dir   = "${path.module}/../apps/leagues"
+      pubsub_topic = google_pubsub_topic.leagues_parse_trigger.id
+      environment_variables = {
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        PUBSUB_PROJECT_ID    = "sharedtelemetryapptest"
+        PUBSUB_TOPIC_ID      = google_pubsub_topic.season_parse_trigger.id
+      }
+    },
+    {
+      name         = "season"
+      source_dir   = "${path.module}/../apps/season"
+      pubsub_topic = google_pubsub_topic.season_parse_trigger.id
+      environment_variables = {
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        IRACING_EMAIL        = var.iracing_email
+        IRACING_PASSWORD     = var.iracing_password
+        PUBSUB_PROJECT_ID    = "sharedtelemetryapptest"
+        PUBSUB_TOPIC_ID      = google_pubsub_topic.session_parse_trigger.id
+      }
+    },
+    {
+      name         = "sessions"
+      source_dir   = "${path.module}/../apps/sessions"
+      pubsub_topic = google_pubsub_topic.session_parse_trigger.id
+      environment_variables = {
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        IRACING_EMAIL        = var.iracing_email
+        IRACING_PASSWORD     = var.iracing_password
+      }
+    }
+  ]
+}
 
-#   region = var.region
-# }
+module "tasks" {
+  for_each = { for task in local.tasks : task.name => task }
+
+  source = "./modules/cloud-function-pubsub"
+
+  location              = var.region
+  function_name         = "ir-${each.key}"
+  source_dir            = each.value.source_dir
+  pubsub_topic_id       = each.value.pubsub_topic
+  environment_variables = each.value.environment_variables
+}
