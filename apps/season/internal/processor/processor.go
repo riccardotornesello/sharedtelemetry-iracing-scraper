@@ -22,6 +22,7 @@ func Process(data *league.LeagueSeasonSessionsResponse, lastSessionLaunchAt *tim
 			if err != nil {
 				return nil, err
 			}
+			// TODO: add tollerance window
 			if launchAt.Before(*lastSessionLaunchAt) {
 				continue
 			}

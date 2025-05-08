@@ -3,7 +3,6 @@ package iracing
 import (
 	"log"
 
-	"github.com/markphelps/optional"
 	irapi "github.com/riccardotornesello/irapi-go"
 	"github.com/riccardotornesello/irapi-go/api/league"
 	"riccardotornesello.it/sharedtelemetry/iracing/season/config"
@@ -19,7 +18,7 @@ func FetchData(cfg config.Config, leagueId int, seasonId int) (*league.LeagueSea
 
 	// Get the data
 	log.Println("Fetching season")
-	resultsOnly := optional.NewBool(true)
+	resultsOnly := true
 	seasonSessions, err := irClient.League.GetLeagueSeasonSessions(league.LeagueSeasonSessionsParams{
 		LeagueId:    leagueId,
 		SeasonId:    seasonId,

@@ -8,8 +8,7 @@ require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
 	github.com/cloudevents/sdk-go/v2 v2.16.0
 	github.com/joho/godotenv v1.5.1
-	github.com/markphelps/optional v0.11.0
-	github.com/riccardotornesello/irapi-go v0.1.0
+	github.com/riccardotornesello/irapi-go v0.2.0
 	google.golang.org/api v0.214.0
 )
 

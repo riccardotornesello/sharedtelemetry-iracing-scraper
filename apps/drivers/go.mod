@@ -7,7 +7,7 @@ require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.9.2
 	github.com/cloudevents/sdk-go/v2 v2.16.0
 	github.com/joho/godotenv v1.5.1
-	github.com/riccardotornesello/irapi-go v0.0.0-20250223161235-477965bc107a
+	github.com/riccardotornesello/irapi-go v0.2.0
 )
 
 require (
@@ -25,7 +25,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/googleapis/gax-go/v2 v2.14.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/markphelps/optional v0.11.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.54.0 // indirect
