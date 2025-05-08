@@ -52,31 +52,59 @@ resource "google_service_account" "invoker" {
   account_id = "gcf-sa-${var.function_name}-invoker"
 }
 
-resource "google_project_iam_member" "log_writer" {
+resource "google_project_iam_member" "builder_log_writer" {
   project = google_service_account.cloudbuild.project
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.cloudbuild.email}"
 }
 
-resource "google_project_iam_member" "artifact_registry_writer" {
+resource "google_project_iam_member" "builder_artifact_registry_writer" {
   project = google_service_account.cloudbuild.project
   role    = "roles/artifactregistry.writer"
   member  = "serviceAccount:${google_service_account.cloudbuild.email}"
 }
 
-resource "google_project_iam_member" "storage_object_admin" {
+resource "google_project_iam_member" "builder_storage_object_admin" {
   project = google_service_account.cloudbuild.project
   role    = "roles/storage.objectAdmin"
   member  = "serviceAccount:${google_service_account.cloudbuild.email}"
 }
 
-resource "time_sleep" "wait_10s" {
-  create_duration = "10s"
+resource "google_project_iam_member" "runner_pubsub_publisher" {
+  project = google_service_account.runner.project
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.runner.email}"
+}
+
+resource "google_project_iam_member" "runner_firestore_writer" {
+  project = google_service_account.runner.project
+  role    = "roles/datastore.user"
+  member  = "serviceAccount:${google_service_account.runner.email}"
+}
+
+resource "google_project_iam_member" "runner_log_writer" {
+  project = google_service_account.runner.project
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.runner.email}"
+}
+
+resource "time_sleep" "wait_builder_permissions" {
+  create_duration = "30s"
 
   depends_on = [
-    google_project_iam_member.log_writer,
-    google_project_iam_member.artifact_registry_writer,
-    google_project_iam_member.storage_object_admin,
+    google_project_iam_member.builder_log_writer,
+    google_project_iam_member.builder_artifact_registry_writer,
+    google_project_iam_member.builder_storage_object_admin,
+  ]
+}
+
+resource "time_sleep" "wait_runner_permissions" {
+  create_duration = "30s"
+
+  depends_on = [
+    google_project_iam_member.runner_pubsub_publisher,
+    google_project_iam_member.runner_firestore_writer,
+    google_project_iam_member.runner_log_writer,
   ]
 }
 
@@ -90,7 +118,8 @@ resource "google_cloudfunctions2_function" "default" {
     google_project_service.eventarc,
     google_project_service.cloudrun,
     google_storage_bucket_object.default,
-    time_sleep.wait_10s,
+    time_sleep.wait_builder_permissions,
+    time_sleep.wait_runner_permissions,
   ]
 
   build_config {

@@ -1,5 +1,16 @@
+terraform { 
+  cloud { 
+    
+    organization = "sharedtelemetry" 
+
+    workspaces { 
+      name = "sharedtelemetry-iracing-scraper-prod" 
+    } 
+  } 
+}
+
 provider "google" {
-  project         = "sharedtelemetryapptest"
+  project         = "sharedtelemetryapp"
   region          = var.region
   request_timeout = "60s"
 }
@@ -31,7 +42,7 @@ locals {
       source_dir   = "${path.module}/../apps/cars"
       pubsub_topic = google_pubsub_topic.cars_parse_trigger.id
       environment_variables = {
-        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapp"
         IRACING_EMAIL        = var.iracing_email
         IRACING_PASSWORD     = var.iracing_password
       }
@@ -41,7 +52,7 @@ locals {
       source_dir   = "${path.module}/../apps/drivers"
       pubsub_topic = google_pubsub_topic.drivers_parse_trigger.id
       environment_variables = {
-        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapp"
         IRACING_EMAIL        = var.iracing_email
         IRACING_PASSWORD     = var.iracing_password
       }
@@ -51,9 +62,9 @@ locals {
       source_dir   = "${path.module}/../apps/leagues"
       pubsub_topic = google_pubsub_topic.leagues_parse_trigger.id
       environment_variables = {
-        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
-        PUBSUB_PROJECT_ID    = "sharedtelemetryapptest"
-        PUBSUB_TOPIC_ID      = google_pubsub_topic.season_parse_trigger.id
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapp"
+        PUBSUB_PROJECT_ID    = "sharedtelemetryapp"
+        PUBSUB_TOPIC_ID      = google_pubsub_topic.season_parse_trigger.name
       }
     },
     {
@@ -61,11 +72,11 @@ locals {
       source_dir   = "${path.module}/../apps/season"
       pubsub_topic = google_pubsub_topic.season_parse_trigger.id
       environment_variables = {
-        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapp"
         IRACING_EMAIL        = var.iracing_email
         IRACING_PASSWORD     = var.iracing_password
-        PUBSUB_PROJECT_ID    = "sharedtelemetryapptest"
-        PUBSUB_TOPIC_ID      = google_pubsub_topic.session_parse_trigger.id
+        PUBSUB_PROJECT_ID    = "sharedtelemetryapp"
+        PUBSUB_TOPIC_ID      = google_pubsub_topic.session_parse_trigger.name
       }
     },
     {
@@ -73,7 +84,7 @@ locals {
       source_dir   = "${path.module}/../apps/sessions"
       pubsub_topic = google_pubsub_topic.session_parse_trigger.id
       environment_variables = {
-        FIRESTORE_PROJECT_ID = "sharedtelemetryapptest"
+        FIRESTORE_PROJECT_ID = "sharedtelemetryapp"
         IRACING_EMAIL        = var.iracing_email
         IRACING_PASSWORD     = var.iracing_password
       }
