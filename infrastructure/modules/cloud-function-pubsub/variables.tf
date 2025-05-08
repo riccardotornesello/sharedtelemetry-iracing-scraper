@@ -35,3 +35,12 @@ variable "pubsub_topic_id" {
   description = "The ID of the Pub/Sub topic"
   type        = string
 }
+
+variable "cron_schedule" {
+  description = "The cron schedule for the function"
+  type = list(object({
+    schedule = string
+    payload  = string
+  }))
+  default = []
+} 

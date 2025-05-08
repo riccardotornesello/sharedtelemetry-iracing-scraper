@@ -164,9 +164,23 @@ resource "google_cloudfunctions2_function_iam_member" "invoker" {
 }
 
 resource "google_cloud_run_service_iam_member" "cloud_run_invoker" {
-  project        = google_cloudfunctions2_function.default.project
-  location       = google_cloudfunctions2_function.default.location
-  service = google_cloudfunctions2_function.default.name
+  project  = google_cloudfunctions2_function.default.project
+  location = google_cloudfunctions2_function.default.location
+  service  = google_cloudfunctions2_function.default.name
   role     = "roles/run.invoker"
-  member         = "serviceAccount:${google_service_account.invoker.email}"
+  member   = "serviceAccount:${google_service_account.invoker.email}"
+}
+
+resource "google_cloud_scheduler_job" "cron" {
+  for_each = { for idx, val in var.cron_schedule : idx => val }
+
+  name     = "gcf-${var.function_name}-cron-${each.key}"
+  schedule = each.value.schedule
+  project  = google_cloudfunctions2_function.default.project
+  region   = google_cloudfunctions2_function.default.location
+
+  pubsub_target {
+    topic_name = var.pubsub_topic_id
+    data       = base64encode(each.value.payload)
+  }
 }

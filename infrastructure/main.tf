@@ -1,12 +1,12 @@
-terraform { 
-  cloud { 
-    
-    organization = "sharedtelemetry" 
+terraform {
+  cloud {
 
-    workspaces { 
-      name = "sharedtelemetry-iracing-scraper-prod" 
-    } 
-  } 
+    organization = "sharedtelemetry"
+
+    workspaces {
+      name = "sharedtelemetry-iracing-scraper-prod"
+    }
+  }
 }
 
 provider "google" {
@@ -66,6 +66,12 @@ locals {
         PUBSUB_PROJECT_ID    = "sharedtelemetryapp"
         PUBSUB_TOPIC_ID      = google_pubsub_topic.season_parse_trigger.name
       }
+      cron_schedule = [
+        {
+          schedule = "*/5 * * * *"
+          payload  = "{}"
+        }
+      ]
     },
     {
       name         = "season"
@@ -102,4 +108,5 @@ module "tasks" {
   source_dir            = each.value.source_dir
   pubsub_topic_id       = each.value.pubsub_topic
   environment_variables = each.value.environment_variables
+  cron_schedule         = each.value.cron_schedule
 }
