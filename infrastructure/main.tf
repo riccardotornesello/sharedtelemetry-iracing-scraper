@@ -108,5 +108,5 @@ module "tasks" {
   source_dir            = each.value.source_dir
   pubsub_topic_id       = each.value.pubsub_topic
   environment_variables = each.value.environment_variables
-  cron_schedule         = each.value.cron_schedule
+  cron_schedule         = lookup(each.value, "cron_schedule", [])
 }
