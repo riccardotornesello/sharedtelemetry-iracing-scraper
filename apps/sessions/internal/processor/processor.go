@@ -43,6 +43,8 @@ func Process(irClient *iracing.Client, sessionResponse *results.ResultsGetRespon
 		TrackID:  sessionResponse.Track.TrackId,
 
 		Simsessions: make([]*firestore.SessionSimsession, len(sessionResponse.SessionResults)),
+
+		ParsedAt: time.Now(),
 	}
 
 	// --- Count the number of tasks to be done (one for each driver in each simsession)

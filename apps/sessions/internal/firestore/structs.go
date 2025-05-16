@@ -9,6 +9,8 @@ type Session struct {
 	TrackID  int       `firestore:"trackId"`
 
 	Simsessions []*SessionSimsession `firestore:"simsessions"`
+
+	ParsedAt time.Time `firestore:"parsedAt"`
 }
 
 type SessionSimsession struct {
